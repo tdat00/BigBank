@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LeeVox.Demo.BigBank.Core\LeeVox.Demo.BigBank.Core.csproj" />
+    <ProjectReference Include="..\LeeVox.Demo.BigBank.Data\LeeVox.Demo.BigBank.Data.csproj" />
+    <ProjectReference Include="..\LeeVox.Demo.BigBank.Model\LeeVox.Demo.BigBank.Model.csproj" />
+    <ProjectReference Include="..\LeeVox.Demo.BigBank.Service\LeeVox.Demo.BigBank.Service.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LeeVox.Sdk" Version="3.3.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.2.0" />
+  </ItemGroup>
+
+</Project>

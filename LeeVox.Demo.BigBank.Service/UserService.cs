@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LeeVox.Sdk;
+using LeeVox.Demo.BigBank.Core;
 using LeeVox.Demo.BigBank.Data;
 using LeeVox.Demo.BigBank.Model;
 
@@ -10,12 +11,14 @@ namespace LeeVox.Demo.BigBank.Service
 {
     public class UserService : IUserService
     {
+        public ILoginInfoService LoginInfoService {get; set;}
         public IUnitOfWork UnitOfWork {get; set;}
         public IUserRepository Repository {get; set;}
 
-        public UserService(IUnitOfWork unitOfWork, IUserRepository customerRepository)
+        public UserService(IUnitOfWork unitOfWork, ILoginInfoService loginInfoService, IUserRepository customerRepository)
         {
             this.UnitOfWork = unitOfWork;
+            this.LoginInfoService = loginInfoService;
             this.Repository = customerRepository;
         }
 
@@ -51,15 +54,20 @@ namespace LeeVox.Demo.BigBank.Service
 
         public int Create(User user)
         {
+            var random = new CryptoRandom();
+            var hasher = new CryptoHash();
+            var salt = random.RandomBytes(16).GetHexaString();
+            //TODO: use slow hash instead of SHA
+            var passwordHash = hasher.Sha256(salt + user.Password).GetHexaString();
+
             var entity = new User
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                Password = user.Password,
-
-                //TODO: secure password
-                PasswordHash = user.Password + "-hashed"
+                
+                PasswordSalt = salt,
+                PasswordHash = passwordHash
             };
 
             Repository.Create(entity);
@@ -79,17 +87,25 @@ namespace LeeVox.Demo.BigBank.Service
                 throw new ArgumentException(nameof(password));
             }
 
-            //TODO: secure password
-            var passwordHash = password + "-hashed";
-            var found = Repository.All.FirstOrDefault(e => email.IsOrdinalEqual(e.Email) && passwordHash.IsOrdinalEqual(e.PasswordHash));
+            var user = GetByEmail(email);
+            var found = user != null;
 
-            if (found != null)
+            if (found)
             {
-                return "found";
+                var hasher = new CryptoHash();
+                //TODO: use slow hash instead of SHA
+                var passwordHash = hasher.Sha256(user.PasswordSalt + password).GetHexaString();
+                found = passwordHash.IsOrdinalEqual(user.PasswordHash, true);
+            }
+
+            if (found)
+            {
+                //TODO: use JWT instead of random token
+                return LoginInfoService.AddLoginInfo(user);
             }
             else
             {
-                return string.Empty;
+                throw new Exception("Email or password is not correct.");
             }
         }
 
@@ -110,5 +126,7 @@ namespace LeeVox.Demo.BigBank.Service
             Repository.Delete(id);
             UnitOfWork.SaveChanges();
         }
+
+        public void Delete(string email) => Delete(GetByEmail(email).Id);
     }
 }

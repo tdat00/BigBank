@@ -1,25 +1,29 @@
 using System;
 using System.Linq;
+using LeeVox.Demo.BigBank.Core;
 using LeeVox.Demo.BigBank.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace LeeVox.Demo.BigBank.Data
 {
     public abstract class BaseRepository<TEntity> : IRepository<TEntity>
         where TEntity : class, IEntity
     {
-        protected internal IBigBankDbContext CustoMerDbContext {get; set;}
+        protected internal IBigBankDbContext DbContext {get; set;}
+        private ILogger<IRepository<TEntity>> Logger { get; set; }
 
-        public BaseRepository(IBigBankDbContext custoMerDbContext)
+        public BaseRepository(IBigBankDbContext dbContext, ILogger<IRepository<TEntity>> logger)
         {
-            this.CustoMerDbContext = custoMerDbContext;
+            this.DbContext = dbContext;
+            this.Logger = logger;
         }
 
         public IQueryable<TEntity> All
         {
             get
             {
-                return CustoMerDbContext.GetDbSet<TEntity>().Where(e => !e.__Deleted.HasValue);
+                return DbContext.GetDbSet<TEntity>().Where(e => !e.__Deleted.HasValue);
             }
         }
 
@@ -27,7 +31,7 @@ namespace LeeVox.Demo.BigBank.Data
         {
             get
             {
-                return CustoMerDbContext.GetDbSet<TEntity>();
+                return DbContext.GetDbSet<TEntity>();
             }
         }
 
@@ -39,13 +43,15 @@ namespace LeeVox.Demo.BigBank.Data
         public void Create(TEntity entity)
         {
             entity.__Created = DateTime.UtcNow;
-            CustoMerDbContext.GetDbSet<TEntity>().Add(entity);
+            DbContext.GetDbSet<TEntity>().Add(entity);
+            Logger.LogDebug($"Create entity '{entity.GetType().Name}': {entity.ToJsonString()}.");
         }
 
         public void Update(TEntity entity)
         {
             entity.__Updated = DateTime.UtcNow;
-            CustoMerDbContext.AttachEntity(entity).State = EntityState.Modified;
+            DbContext.AttachEntity(entity).State = EntityState.Modified;
+            Logger.LogDebug($"Updated entity '{entity.GetType().Name}': {entity.ToJsonString()}.");
         }
 
         public void Delete(int id)
@@ -55,7 +61,8 @@ namespace LeeVox.Demo.BigBank.Data
         {
             // do not delete the entity from database
             entity.__Deleted = DateTime.UtcNow;
-            CustoMerDbContext.AttachEntity(entity).State = EntityState.Modified;
+            DbContext.AttachEntity(entity).State = EntityState.Modified;
+            Logger.LogDebug($"Deleted entity '{entity.GetType().Name}': {entity.ToJsonString()}.");
         }
     }
 }

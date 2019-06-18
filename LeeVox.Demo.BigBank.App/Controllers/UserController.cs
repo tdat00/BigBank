@@ -15,9 +15,9 @@ namespace LeeVox.Demo.BigBank.App.Controllers
     public class UserController : IUserController
     {
         public IUserService UserService { get; set; }
-        public ILogger<IUserController> Logger { get; set; }
+        public ILogger<UserController> Logger { get; set; }
 
-        public UserController(IUserService userService, ILogger<IUserController> logger)
+        public UserController(IUserService userService, ILogger<UserController> logger)
         {
             UserService = userService;
             Logger = logger;
@@ -30,21 +30,35 @@ namespace LeeVox.Demo.BigBank.App.Controllers
                 FirstName = firstName,
                 LastName = lastName,
                 Email = email,
-                Password = password,
-                PasswordHash = password + "-hashed"
+                Password = password
             });
-            Logger.LogInformation("New ID: " + id);
+            Logger.LogInformation("Created user with Id: " + id);
             return id;
         }
 
         public string Login(string email, string password)
         {
-            var token = UserService.Login(email, password);
-            if (string.IsNullOrEmpty(token))
+            try
             {
-                Logger.LogError("Login failed.");
+                return UserService.Login(email, password);
             }
-            return token;
+            catch (Exception ex)
+            {
+                Logger.LogError("Login failed: " + ex.Message);
+                return string.Empty;
+            }
+        }
+
+        public void Delete(string email)
+        {
+            try
+            {
+                UserService.Delete(email);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("Error while deleting: " + ex.Message);
+            }
         }
     }
 }

@@ -13,5 +13,6 @@ namespace LeeVox.Demo.BigBank.Service
         string Login(string email, string password);
         void Update(User customer);
         void Delete(int id);
+        void Delete(string email);
     }
 }

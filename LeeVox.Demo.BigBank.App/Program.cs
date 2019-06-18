@@ -16,7 +16,11 @@ namespace LeeVox.Demo.BigBank.App
             var services = new ServiceCollection();
 
             services.AddLogging(configure => {
+#if DEBUG
+                configure.AddConsole().SetMinimumLevel(LogLevel.Debug);
+#else
                 configure.AddConsole().SetMinimumLevel(LogLevel.Information);
+#endif
             });
 
             // Dependency injection

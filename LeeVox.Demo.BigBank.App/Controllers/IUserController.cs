@@ -14,5 +14,6 @@ namespace LeeVox.Demo.BigBank.App.Controllers
     {
         int Create(string firstName, string lastName, string email, string password);
         string Login(string email, string password);
+        void Delete(string email);
     }
 }

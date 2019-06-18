@@ -17,6 +17,7 @@ namespace LeeVox.Demo.BigBank.App
 
             // LeeVox.Demo.Bigbank.Service
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ILoginInfoService, LoginInfoService>();
 
             // LeeVox.Demo.Bigbank.Data
             services.AddScoped<IUserRepository, UserRepository>();

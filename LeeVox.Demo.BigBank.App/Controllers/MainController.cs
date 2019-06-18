@@ -6,9 +6,9 @@ namespace LeeVox.Demo.BigBank.App.Controllers
     public class MainController : IMainController
     {
         public IUserController UserController { get; set; }
-        public ILogger<IMainController> Logger { get; set; }
+        public ILogger<MainController> Logger { get; set; }
 
-        public MainController(IUserController userController, ILogger<IMainController> logger)
+        public MainController(IUserController userController, ILogger<MainController> logger)
         {
             UserController = userController;
             Logger = logger;
@@ -26,6 +26,8 @@ namespace LeeVox.Demo.BigBank.App.Controllers
 
             loginToken = UserController.Login("bill.gate@microsoft.com", "P@ssw0rd");
             Logger.LogInformation($"Login token: {loginToken}");
+
+            UserController.Delete("bill.gate@microsoft.com");
 
             Logger.LogInformation("Closing app...");
         }

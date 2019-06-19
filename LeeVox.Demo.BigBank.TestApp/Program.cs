@@ -71,13 +71,13 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
             Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
 
-            Console.WriteLine("\r\nLogout.");
-            response = POST(restClient, "api/user/logout", new {
-                email = "admin@big.bank"
-            }, new Dictionary<string, string>() {
-                {"Authorization", $"Bearer {token}"}
-            });
-            Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
+            // Console.WriteLine("\r\nLogout.");
+            // response = POST(restClient, "api/user/logout", new {
+            //     email = "admin@big.bank"
+            // }, new Dictionary<string, string>() {
+            //     {"Authorization", $"Bearer {token}"}
+            // });
+            // Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
 
             Console.WriteLine("\r\nEnsure cannot call authenticated API any more.");
             response = PUT(restClient, "api/user", new {

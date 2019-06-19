@@ -9,6 +9,10 @@ namespace LeeVox.Demo.BigBank.Data
     public class InMemoryBigBankDbContext : DbContext, IBigBankDbContext, IUnitOfWork
     {
         public DbSet<User> Users {get; set;}
+        public DbSet<Transaction> Transactions {get; }
+        public DbSet<BankAccount> BankAccounts {get; }
+        public DbSet<Currency> Currencies {get; }
+        public DbSet<ExchangeRateHistory> ExchangeRateHistories {get; }
 
         public InMemoryBigBankDbContext()
         {

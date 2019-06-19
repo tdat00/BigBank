@@ -14,9 +14,6 @@ namespace LeeVox.Demo.BigBank.Model
         public string AccountNumber {get; set;}
 
         public virtual Currency Currency {get; set;}
-
         public virtual User User {get; set;}
-
-        public virtual IQueryable<Transaction> Transactions {get; set;}
     }
 }

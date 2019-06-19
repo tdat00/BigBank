@@ -5,8 +5,8 @@ namespace LeeVox.Demo.BigBank.Data
 {
     public class UserRepository : BaseRepository<User>, IUserRepository
     {
-        public UserRepository(IBigBankDbContext custoMerDbContext, ILogger<IUserRepository> logger)
-            : base(custoMerDbContext, logger)
+        public UserRepository(IBigBankDbContext dbContext, ILogger<IUserRepository> logger)
+            : base(dbContext, logger)
         {
         }
     }

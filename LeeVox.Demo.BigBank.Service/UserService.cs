@@ -12,15 +12,15 @@ namespace LeeVox.Demo.BigBank.Service
 {
     public class UserService : IUserService
     {
-        public ILoginInfoService LoginInfoService {get; set;}
+        public IJwtService JwtService {get; set;}
         public IUnitOfWork UnitOfWork {get; set;}
         public IUserRepository Repository {get; set;}
         public ILogger<IUserService> Logger {get; set;}
 
-        public UserService(IUnitOfWork unitOfWork, ILoginInfoService loginInfoService, IUserRepository customerRepository, ILogger<IUserService> logger)
+        public UserService(IUnitOfWork unitOfWork, IJwtService jwtService, IUserRepository customerRepository, ILogger<IUserService> logger)
         {
             this.UnitOfWork = unitOfWork;
-            this.LoginInfoService = loginInfoService;
+            this.JwtService = jwtService;
             this.Repository = customerRepository;
             this.Logger = logger;
         }
@@ -95,8 +95,6 @@ namespace LeeVox.Demo.BigBank.Service
                 throw new ArgumentException(nameof(password));
             }
 
-            Logger.LogInformation("Count: " + Repository.All_IncludeDeleted.Count());
-
             var user = Get(email);
             var found = user != null;
 
@@ -110,8 +108,7 @@ namespace LeeVox.Demo.BigBank.Service
 
             if (found)
             {
-                //TODO: use JWT instead of random token
-                return LoginInfoService.AddLoginInfo(user);
+                return JwtService.GenerateToken(user);
             }
             else
             {
@@ -119,14 +116,9 @@ namespace LeeVox.Demo.BigBank.Service
             }
         }
 
-        public void Logout(string email)
+        public void Logout(string session)
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                throw new ArgumentException(nameof(email));
-            }
-
-            LoginInfoService.RemoveLoginInfo(new User {Email = email});
+            JwtService.RemoveSession(session);
         }
 
         public void Delete(int id)

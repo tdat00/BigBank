@@ -10,6 +10,6 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
 
         [AllowAnonymous]
         ActionResult Login(dynamic body);
-        ActionResult Logout(dynamic body);
+        ActionResult Logout();
     }
 }

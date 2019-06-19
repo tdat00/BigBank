@@ -1,9 +1,10 @@
-namespace LeeVox.Demo.BigBank.WebApi.Controllers
+namespace LeeVox.Demo.BigBank.Service
 {
     /// <summary>
     /// Blank inteface for auto injection of DI.
     /// </summary>
-    public interface IController
+    public interface IService
     {
+        
     }
 }

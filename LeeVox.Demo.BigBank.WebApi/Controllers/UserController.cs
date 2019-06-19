@@ -12,10 +12,13 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
     [Authorize]
     public class UserController : AuthenticatedApiController, IUserController
     {
+        public CurrentLoginInfo CurrentLoginInfo {get; set;}
         public IUserService UserService {get; set;}
         public ILogger<IUserController> Logger {get; set;}
-        public UserController(IUserService userService, ILogger<IUserController> logger)
+
+        public UserController(CurrentLoginInfo currentLoginInfo, IUserService userService, ILogger<IUserController> logger)
         {
+            this.CurrentLoginInfo = currentLoginInfo;
             this.UserService = userService;
             this.Logger = logger;
         }
@@ -51,7 +54,7 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
             }
             catch (Exception ex) when (ex is ArgumentException || ex is BusinessException)
             {
-                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -80,7 +83,7 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
             }
             catch (Exception ex) when (ex is ArgumentException || ex is BusinessException)
             {
-                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -90,22 +93,21 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
         }
 
         [HttpPost("logout")]
-        public ActionResult Logout([FromBody] dynamic body)
+        public ActionResult Logout()
         {
             try
             {
-                string email = body.email ?? body.Email;
-                UserService.Logout(email);
+                UserService.Logout(CurrentLoginInfo.Session);
                 return Ok();
             }
             catch (Exception ex) when (ex is ArgumentException || ex is BusinessException)
             {
-                return StatusCode(StatusCodes.Status400BadRequest, ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 Logger.LogError("Error while calling ~/Logout: " + ex.Message, ex);
-                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+                return  StatusCode(StatusCodes.Status500InternalServerError, ex);
             }
         }
     }

@@ -4,7 +4,7 @@ using LeeVox.Demo.BigBank.Model;
 
 namespace LeeVox.Demo.BigBank.Service
 {
-    public interface IUserService
+    public interface IUserService : IService
     {
         User Get(int id);
         User Get(string email);
@@ -12,7 +12,7 @@ namespace LeeVox.Demo.BigBank.Service
 
         int Create(User customer);
         string Login(string email, string password);
-        void Logout(string email);
+        void Logout(string token);
         void Delete(int id);
         void Delete(string email);
     }

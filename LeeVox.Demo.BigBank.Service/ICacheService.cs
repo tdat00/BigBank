@@ -4,7 +4,7 @@ using LeeVox.Demo.BigBank.Model;
 
 namespace LeeVox.Demo.BigBank.Service
 {
-    public interface ICacheService<TKey, TValue>
+    public interface ICacheService<TKey, TValue> : IService
     {
         void Add(TKey key, TValue value);
         bool ContainsKey(TKey key);

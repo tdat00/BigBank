@@ -6,6 +6,7 @@ using LeeVox.Sdk;
 using LeeVox.Demo.BigBank.Core;
 using LeeVox.Demo.BigBank.Data;
 using LeeVox.Demo.BigBank.Model;
+using Microsoft.Extensions.Logging;
 
 namespace LeeVox.Demo.BigBank.Service
 {
@@ -14,12 +15,14 @@ namespace LeeVox.Demo.BigBank.Service
         public ILoginInfoService LoginInfoService {get; set;}
         public IUnitOfWork UnitOfWork {get; set;}
         public IUserRepository Repository {get; set;}
+        public ILogger<IUserService> Logger {get; set;}
 
-        public UserService(IUnitOfWork unitOfWork, ILoginInfoService loginInfoService, IUserRepository customerRepository)
+        public UserService(IUnitOfWork unitOfWork, ILoginInfoService loginInfoService, IUserRepository customerRepository, ILogger<IUserService> logger)
         {
             this.UnitOfWork = unitOfWork;
             this.LoginInfoService = loginInfoService;
             this.Repository = customerRepository;
+            this.Logger = logger;
         }
 
         public User Get(int id)
@@ -27,7 +30,7 @@ namespace LeeVox.Demo.BigBank.Service
             return Repository.ById(id);
         }
 
-        public User GetByEmail(string email)
+        public User Get(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
             {
@@ -54,6 +57,11 @@ namespace LeeVox.Demo.BigBank.Service
 
         public int Create(User user)
         {
+            if (string.IsNullOrWhiteSpace(user.Email) || Get(user.Email) != null)
+            {
+                throw new ArgumentException("Email is missing or already exists.");
+            }
+
             var random = new CryptoRandom();
             var hasher = new CryptoHash();
             var salt = random.RandomBytes(16).GetHexaString();
@@ -87,7 +95,9 @@ namespace LeeVox.Demo.BigBank.Service
                 throw new ArgumentException(nameof(password));
             }
 
-            var user = GetByEmail(email);
+            Logger.LogInformation("Count: " + Repository.All_IncludeDeleted.Count());
+
+            var user = Get(email);
             var found = user != null;
 
             if (found)
@@ -105,13 +115,18 @@ namespace LeeVox.Demo.BigBank.Service
             }
             else
             {
-                throw new Exception("Email or password is not correct.");
+                throw new BusinessException("Email or password is not correct.");
             }
         }
 
-        public void Update(User user)
+        public void Logout(string email)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new ArgumentException(nameof(email));
+            }
+
+            LoginInfoService.RemoveLoginInfo(new User {Email = email});
         }
 
         public void Delete(int id)
@@ -120,13 +135,13 @@ namespace LeeVox.Demo.BigBank.Service
 
             if (entity == null)
             {
-                throw new Exception("User Id does not exist.");
+                throw new BusinessException("User Id does not exist.");
             }
 
             Repository.Delete(id);
             UnitOfWork.SaveChanges();
         }
 
-        public void Delete(string email) => Delete(GetByEmail(email).Id);
+        public void Delete(string email) => Delete(Get(email).Id);
     }
 }

@@ -1,18 +1,17 @@
-using LeeVox.Demo.BigBank.App.Controllers;
 using LeeVox.Demo.BigBank.Data;
 using LeeVox.Demo.BigBank.Service;
+using LeeVox.Demo.BigBank.WebApi.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
-namespace LeeVox.Demo.BigBank.App
+namespace LeeVox.Demo.BigBank.WebApi
 {
     public class DependencyResolver
     {
         public void AddDependencies(IServiceCollection services)
         {
-            // LeeVox.Demo.BigBank.App
-            services.AddScoped<IMainController, MainController>();
+            // LeeVox.Demo.Bigbank.WebApi
             services.AddScoped<IUserController, UserController>();
 
             // LeeVox.Demo.Bigbank.Service

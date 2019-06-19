@@ -1,8 +1,6 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace LeeVox.Demo.BigBank.Model
 {
@@ -17,6 +15,7 @@ namespace LeeVox.Demo.BigBank.Model
         public string LastName {get; set;}
 
         [NotMapped]
+        [JsonIgnore]
         public string Name => $"{FirstName} {LastName}";
 
         [Required]
@@ -25,8 +24,11 @@ namespace LeeVox.Demo.BigBank.Model
         public string Email {get; set;}
 
         [NotMapped]
+        [JsonIgnore]
         public string Password {get; set;}
+        [JsonIgnore]
         public string PasswordSalt {get; set;}
+        [JsonIgnore]
         public string PasswordHash {get; set;}
 
         //public virtual IQueryable<BankAccount> Accounts {get; set;}

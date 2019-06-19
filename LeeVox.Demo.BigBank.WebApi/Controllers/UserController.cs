@@ -9,10 +9,9 @@ using Microsoft.Extensions.Logging;
 
 namespace LeeVox.Demo.BigBank.WebApi.Controllers
 {
-    [Authorize]
-    public class UserController : AuthenticatedApiController, IUserController
+    public class UserController : BaseAuthenticatedApiController, IUserController
     {
-        public CurrentLoginInfo CurrentLoginInfo {get; set;}
+        public override CurrentLoginInfo CurrentLoginInfo {get; set;}
         public IUserService UserService {get; set;}
         public ILogger<IUserController> Logger {get; set;}
 

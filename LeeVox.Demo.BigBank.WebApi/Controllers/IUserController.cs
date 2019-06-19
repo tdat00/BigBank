@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LeeVox.Demo.BigBank.WebApi.Controllers
 {
-    public interface IUserController : IApiController
+    public interface IUserController : IAuthenticatedController
     {
         ActionResult Get(int id, string email = null);
         ActionResult Put(dynamic body);

@@ -1,8 +1,6 @@
 ﻿using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using LeeVox.Demo.BigBank.Model;
-using LeeVox.Demo.BigBank.Service;
 using LeeVox.Demo.BigBank.WebApi.Middleware;
 using LeeVox.Sdk;
 using Microsoft.AspNetCore.Authentication;
@@ -104,11 +102,10 @@ namespace LeeVox.Demo.BigBank.WebApi
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+            app.UseHttpsRedirection();
             app.UseAuthentication();
             //TODO: should implement OAuth2 standard instead of InMemory session.
             app.UseMiddleware<SessionJwtMiddleware>();
-            app.UseHttpsRedirection();
             app.UseMvc();
         }
     }

@@ -1,4 +1,3 @@
-using System;
 using System.Security.Cryptography;
 
 namespace LeeVox.Demo.BigBank.Core

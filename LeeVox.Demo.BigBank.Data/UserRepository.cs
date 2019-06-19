@@ -1,4 +1,3 @@
-using System.Linq;
 using LeeVox.Demo.BigBank.Model;
 using Microsoft.Extensions.Logging;
 

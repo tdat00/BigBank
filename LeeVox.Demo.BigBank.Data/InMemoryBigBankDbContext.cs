@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using LeeVox.Demo.BigBank.Model;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using LeeVox.Demo.BigBank.Core;
+using System;
+using Microsoft.Extensions.Logging;
 
 namespace LeeVox.Demo.BigBank.Data
 {
@@ -14,9 +16,13 @@ namespace LeeVox.Demo.BigBank.Data
         public DbSet<Currency> Currencies {get; }
         public DbSet<ExchangeRateHistory> ExchangeRateHistories {get; }
 
-        public InMemoryBigBankDbContext()
+        public ILogger<IBigBankDbContext> Logger {get; set;}
+
+        public InMemoryBigBankDbContext(ILogger<IBigBankDbContext> logger)
         {
             Database.EnsureCreated();
+
+            this.Logger = logger;
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
@@ -57,5 +63,55 @@ namespace LeeVox.Demo.BigBank.Data
 
         public EntityEntry<TEntity> AttachEntity<TEntity>(TEntity entity) where TEntity: class, IEntity
             => this.Attach(entity);
+
+        public bool Transaction(Action action)
+        {
+            bool result = true;
+            using (var transaction = this.Database.BeginTransaction())
+            {
+                try
+                {
+                    Logger.LogInformation($"Begin transaction {transaction.TransactionId}.");
+                    
+                    action.Invoke();
+                    transaction.Commit();
+                    
+                    Logger.LogInformation($"Successfully committed transaction {transaction.TransactionId}.");
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Error while running transaction {transaction.TransactionId}: {ex.Message}", ex);
+                    transaction.Rollback();
+
+                    result = false;
+                }
+            }
+            return result;
+        }
+
+        public TResult Transaction<TResult>(Func<TResult> func)
+        {
+            TResult result;
+            using (var transaction = this.Database.BeginTransaction())
+            {
+                try
+                {
+                    Logger.LogInformation($"Begin transaction {transaction.TransactionId}.");
+                    
+                    result = func.Invoke();
+                    transaction.Commit();
+
+                    Logger.LogInformation($"Successfully committed transaction {transaction.TransactionId}.");
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Error while running transaction {transaction.TransactionId}: {ex.Message}", ex);
+                    transaction.Rollback();
+
+                    result = default(TResult);
+                }
+            }
+            return result;
+        }
     }
 }

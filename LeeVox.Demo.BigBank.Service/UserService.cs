@@ -56,26 +56,42 @@ namespace LeeVox.Demo.BigBank.Service
             return result.OrderBy(e => e.Id).Skip(skip).Take(take);
         }
 
-        public int Create(User user)
-            => Create(user, null);
-        public int Create(User user, BankAccount newBankAccount)
+        public IEnumerable<BankAccount> GetBankAccounts(string email)
         {
-            if (string.IsNullOrWhiteSpace(user.Email) || Get(user.Email) != null)
+            if (string.IsNullOrWhiteSpace(email))
             {
-                throw new ArgumentException("Email is missing or already exists.");
+                throw new ArgumentException("Email is missing.");
+            }
+            var user = Get(email);
+            if (user == null)
+            {
+                throw new BusinessException("Email does not exist.");
+            }
+
+            return user.Accounts;
+        }
+
+        public int Create(string email, string password, string firstName, string lastName)
+            => Create(email, password, firstName, lastName, null, null);
+
+        public int Create(string email, string password, string firstName, string lastName, string bankAccount, string bankAccountCurrency)
+        {
+            if (string.IsNullOrWhiteSpace(email) || Get(email) != null)
+            {
+                throw new BusinessException("Email is missing or already exists.");
             }
 
             var random = new CryptoRandom();
             var hasher = new CryptoHash();
             var salt = random.RandomBytes(16).GetHexaString();
             //TODO: use slow hash instead of SHA
-            var passwordHash = hasher.Sha256(salt + user.Password).GetHexaString();
+            var passwordHash = hasher.Sha256(salt + password).GetHexaString();
 
             var entity = new User
             {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
                 
                 PasswordSalt = salt,
                 PasswordHash = passwordHash
@@ -83,11 +99,10 @@ namespace LeeVox.Demo.BigBank.Service
 
             UserRepository.Create(entity);
             UnitOfWork.SaveChanges();
-
-            if (newBankAccount != null)
+            //TODO: using transaction in real db.
+            if (!string.IsNullOrWhiteSpace(bankAccount) && !string.IsNullOrWhiteSpace(bankAccountCurrency))
             {
-                newBankAccount.User = entity;
-                BankAccountService.Create(newBankAccount);
+                BankAccountService.Create(bankAccount, bankAccountCurrency, entity.Id);
             }
 
             return entity.Id;

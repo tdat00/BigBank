@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LeeVox.Demo.BigBank.Core;
 using LeeVox.Demo.BigBank.Data;
 using LeeVox.Demo.BigBank.Model;
@@ -24,34 +25,54 @@ namespace LeeVox.Demo.BigBank.Service
             this.Logger = logger;
         }
 
-        public int Create(BankAccount account)
+        public BankAccount Get(string accountNumber)
         {
-            if (account.User == null || string.IsNullOrWhiteSpace(account.User.Email))
+            var accountEntity = BankAccountRepository.ByAccountNumber(accountNumber);
+            if (accountEntity == null)
             {
-                throw new ArgumentException("User email is required.");
+                throw new BusinessException("Account number does not exist.");
             }
-            if (account.Currency == null || string.IsNullOrWhiteSpace(account.Currency.Name))
+            return accountEntity;
+        }
+
+        public int Create(string accountNumber, string currency, int userId)
+            => Create(accountNumber, currency, UserRepository.ById(userId));
+        public int Create(string accountNumber, string currency, string userEmail)
+            => Create(accountNumber, currency, UserRepository.ByEmail(userEmail));
+
+        private int Create(string accountNumber, string currency, User userEntity)
+        {
+            if (string.IsNullOrWhiteSpace(accountNumber))
+            {
+                throw new ArgumentException("Account number is required.");
+            }
+            //TODO: should validate in Entity class, not this.
+            accountNumber = accountNumber.Trim();
+            if (accountNumber.Length < 10 && accountNumber.Length > 20)
+            {
+                throw new BusinessException("Account number format is not valid.");
+            }
+            if (string.IsNullOrWhiteSpace(currency))
             {
                 throw new ArgumentException("Currency is required.");
             }
 
-            var currency = CurrencyRepository.ByName(account.Currency.Name);
-            var user = UserRepository.ByEmail(account.User.Email);
-
-            if (currency == null)
-            {
-                throw new BusinessException("Currency does not exist.");
-            }
-            if (user == null)
+            if (userEntity == null)
             {
                 throw new BusinessException("User does not exist.");
             }
 
+            var currencyEntity = CurrencyRepository.ByName(currency);
+            if (currencyEntity == null)
+            {
+                throw new BusinessException("Currency does not exist.");
+            }
+
             var entity = new BankAccount
             {
-                AccountNumber = account.AccountNumber,
-                Currency = currency,
-                User = user
+                AccountNumber = accountNumber,
+                Currency = currencyEntity,
+                User = userEntity
             };
 
             BankAccountRepository.Create(entity);

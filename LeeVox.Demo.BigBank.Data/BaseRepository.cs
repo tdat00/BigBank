@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using LeeVox.Demo.BigBank.Core;
 using LeeVox.Demo.BigBank.Model;
@@ -45,6 +46,15 @@ namespace LeeVox.Demo.BigBank.Data
             entity.__Created = DateTime.UtcNow;
             DbContext.GetDbSet<TEntity>().Add(entity);
             Logger.LogDebug($"Create entity '{entity.GetType().Name}': {entity.ToJsonString()}.");
+        }
+
+        public void Create(IEnumerable<TEntity> entities)
+        {
+            foreach (var entity in entities)
+            {
+                entity.__Created = DateTime.UtcNow;
+            }
+            DbContext.GetDbSet<TEntity>().AddRange(entities);
         }
 
         public void Update(TEntity entity)

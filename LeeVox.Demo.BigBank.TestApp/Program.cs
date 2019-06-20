@@ -20,13 +20,12 @@ namespace LeeVox.Demo.BigBank.TestApp
 
 
             Console.WriteLine("\r\nCall API without authentication.");
-            response = PUT(restClient, "api/user", new {
-                first_name = "Shoud",
-                last_name = "Not",
-                email = "be_inserted@database.db",
-                password = "Should not be inserted to database."
+            response = PUT(restClient, "api/exchange-rate", new {
+                time = new DateTime(2019, 01, 01),
+                from = "usd",
+                to = "vnd",
+                rate = "20000"
             });
-            Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
 
 
             Console.WriteLine("\r\nTest fail login.");
@@ -34,7 +33,6 @@ namespace LeeVox.Demo.BigBank.TestApp
                 email = "admin@big.bank",
                 password = "wrong-password"
             });
-            Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
 
 
             Console.WriteLine("\r\nTest success login.");
@@ -42,11 +40,33 @@ namespace LeeVox.Demo.BigBank.TestApp
                 email = "admin@big.bank",
                 password = "T0p$ecret"
             });
-            Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
 
 
             dynamic content = JsonConvert.DeserializeObject(response.Content);
             token = content.token;
+
+
+            Console.WriteLine("\r\nInsert exchange rates.");
+            response = PUT(restClient, "api/exchange-rate", new []{
+                new {
+                    time = "2010-01-01T00:00:00.000Z",
+                    from = "usd",
+                    to = "vnd",
+                    rate = "20000"
+                }, new {
+                    time = "2019-06-01T00:00:00.000Z",
+                    from = "usd",
+                    to = "vnd",
+                    rate = "22000"
+                }, new {
+                    time = "2019-06-01T00:00:00.000Z",
+                    from = "eur",
+                    to = "vnd",
+                    rate = "26000"
+                } 
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
 
 
             Console.WriteLine("\r\nCreate 1st user.");
@@ -54,25 +74,49 @@ namespace LeeVox.Demo.BigBank.TestApp
                 first_name = "Bill",
                 last_name = "Gate",
                 email = "bill.gate@microsoft.com",
-                password = "P@ssw0rd"
-            }, new Dictionary<string, string>() {
-                {"Authorization", $"Bearer {token}"}
-            });
-            Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
+                password = "P@ssw0rd",
 
-            Console.WriteLine("\r\nCreate 2nd user.");
-            response = PUT(restClient, "api/user", new {
-                first_name = "Steve",
-                last_name = "Jobs",
-                email = "steve.jobs@apple.com",
-                password = "Sup3r$ecret",
-				
-				account_number = "11235813",
+                account_number = "USD_Gate_001",
 				account_currency = "USD"
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
-            Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
+
+
+            Console.WriteLine("\r\nCreate 2nd user without bank account.");
+            response = PUT(restClient, "api/user", new {
+                firstName = "Steve",
+                lastName = "Jobs",
+                email = "steve.jobs@apple.com",
+                password = "P@ssw0rd"
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Console.WriteLine("\r\nCreate 3rd user.");
+            response = PUT(restClient, "api/user", new {
+                FirstName = "Dat",
+                LastName = "Le",
+                Email = "dat.le@leevox.com",
+                Password = "P@ssw0rd",
+
+                accountNumber = "VND_Dat_999",
+				accountCurrency = "VND"
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Console.WriteLine("\r\nRegister bank account for 2nd user.");
+            response = PUT(restClient, "api/user/register-bank-account", new {
+                email = "steve.jobs@apple.com",
+				account = "EUR_Jobs_001",
+				currency = "EUR"
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
 
             Console.WriteLine("\r\nLogout.");
             response = POST(restClient, "api/user/logout", new {
@@ -80,9 +124,9 @@ namespace LeeVox.Demo.BigBank.TestApp
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
-            Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
 
-            Console.WriteLine("\r\nEnsure cannot call authenticated API any more.");
+
+            Console.WriteLine("\r\nShould not call authenticated API any more.");
             response = PUT(restClient, "api/user", new {
                 first_name = "Shoud",
                 last_name = "Not",
@@ -91,7 +135,7 @@ namespace LeeVox.Demo.BigBank.TestApp
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
-            Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
+
 
             Console.WriteLine("\r\nFinished.");
             //Console.ReadLine();
@@ -119,7 +163,9 @@ namespace LeeVox.Demo.BigBank.TestApp
             {
                 request.AddJsonBody(body);
             }
-            return client.Execute(request);
+            var response = client.Execute(request);
+            Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
+            return response;
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using LeeVox.Demo.BigBank.Model;
 
@@ -12,6 +13,7 @@ namespace LeeVox.Demo.BigBank.Data
         TEntity ById(int id);
 
         void Create(TEntity entity);
+        void Create(IEnumerable<TEntity> entities);
         void Update(TEntity entity);
         void Delete(int id);
         void Delete(TEntity entity);

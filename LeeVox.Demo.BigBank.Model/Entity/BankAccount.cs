@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.Serialization;
 
 namespace LeeVox.Demo.BigBank.Model
 {
@@ -10,8 +11,14 @@ namespace LeeVox.Demo.BigBank.Model
         //TODO: make unique index
         public string AccountNumber {get; set;}
 
+        [IgnoreDataMember]
+        public int CurrencyId {get; set;}
         public virtual Currency Currency {get; set;}
+        [IgnoreDataMember]
+        public int UserId {get; set;}
         public virtual User User {get; set;}
+
+        public decimal Balance {get; set;}
 
         public virtual IEnumerable<Transaction> Transaction {get; set;}
     }

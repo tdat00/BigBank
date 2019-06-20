@@ -5,6 +5,8 @@ namespace LeeVox.Demo.BigBank.Service
 {
     public interface IBankAccountService : IService
     {
-        int Create(BankAccount account);
+        BankAccount Get(string accountName);
+        int Create(string accountName, string currency, int userId);
+        int Create(string accountName, string currency, string userEmail);
     }
 }

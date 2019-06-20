@@ -11,6 +11,8 @@ namespace LeeVox.Demo.BigBank.WebApi
         {
             // LeeVox.Demo.Bigbank.WebApi.Controller
             services.AddScoped<IUserController, UserController>();
+            services.AddScoped<IExchangeRateController, ExchangeRateController>();
+            services.AddScoped<IBankAccountController, BankAccountController>();
 
             // LeeVox.Demo.Bigbank.Service
             services.AddSingleton<IJwtSessionService, JwtSessionService>();
@@ -27,6 +29,7 @@ namespace LeeVox.Demo.BigBank.WebApi
             services.AddScoped<ICurrencyRepository, CurrencyRepository>();
             services.AddScoped<IExchangeRateHistoryRepository, ExchangeRateHistoryRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
+            
             services.AddDbContext<InMemoryBigBankDbContext>();
             services.AddScoped<IBigBankDbContext>(x => x.GetRequiredService<InMemoryBigBankDbContext>());
             services.AddScoped<IUnitOfWork>(x => x.GetRequiredService<InMemoryBigBankDbContext>());

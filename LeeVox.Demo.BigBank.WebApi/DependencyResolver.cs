@@ -16,9 +16,17 @@ namespace LeeVox.Demo.BigBank.WebApi
             services.AddSingleton<IJwtSessionService, JwtSessionService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IBankAccountService, BankAccountService>();
+            services.AddScoped<ICurrencyService, CurrencyService>();
+            services.AddScoped<IExchangeRateHistoryService, ExchangeRateHistoryService>();
+            services.AddScoped<ITransactionService, TransactionService>();
 
             // LeeVox.Demo.Bigbank.Data
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IBankAccountRepository, BankAccountRepository>();
+            services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+            services.AddScoped<IExchangeRateHistoryRepository, ExchangeRateHistoryRepository>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddDbContext<InMemoryBigBankDbContext>();
             services.AddScoped<IBigBankDbContext>(x => x.GetRequiredService<InMemoryBigBankDbContext>());
             services.AddScoped<IUnitOfWork>(x => x.GetRequiredService<InMemoryBigBankDbContext>());

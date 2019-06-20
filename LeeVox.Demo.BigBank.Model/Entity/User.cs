@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
 using System.Runtime.Serialization;
 
 namespace LeeVox.Demo.BigBank.Model
@@ -33,6 +33,6 @@ namespace LeeVox.Demo.BigBank.Model
         public string PasswordHash {get; set;}
 
         [IgnoreDataMember]
-        public virtual IQueryable<BankAccount> Accounts {get; set;}
+        public virtual IEnumerable<BankAccount> Accounts {get; set;}
     }
 }

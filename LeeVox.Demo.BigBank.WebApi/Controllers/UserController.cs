@@ -13,12 +13,14 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
     {
         public override CurrentLoginInfo CurrentLoginInfo {get; set;}
         public IUserService UserService {get; set;}
+        public IBankAccountService BankAccountService {get; set;}
         public ILogger<IUserController> Logger {get; set;}
 
-        public UserController(CurrentLoginInfo currentLoginInfo, IUserService userService, ILogger<IUserController> logger)
+        public UserController(CurrentLoginInfo currentLoginInfo, IUserService userService, IBankAccountService bankAccountService, ILogger<IUserController> logger)
         {
             this.CurrentLoginInfo = currentLoginInfo;
             this.UserService = userService;
+            this.BankAccountService = bankAccountService;
             this.Logger = logger;
         }
 
@@ -40,6 +42,7 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
         {
             try
             {
+                var id = 0;
                 var user = new User
                 {
                     FirstName = body.first_name ?? body.firstName,
@@ -47,8 +50,52 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
                     Email = body.email ?? body.Email,
                     Password = body.password ?? body.Password
                 };
+                
+                string bank_account_number = body.account_number ?? body.accountNumber;
+                string bank_account_currency = body.account_currency ?? body.accountCurrency;
+                if (!string.IsNullOrWhiteSpace(bank_account_number) && !string.IsNullOrWhiteSpace(bank_account_currency))
+                {
+                    var bankAccount = new BankAccount
+                    {
+                        AccountNumber = bank_account_number,
+                        Currency = new Currency
+                        {
+                            Name = bank_account_currency
+                        }
+                    };
+                    id = UserService.Create(user, bankAccount);
+                }
+                else
+                {
+                    id = UserService.Create(user);
+                }
+                
+                return Ok(new {id = id});
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is BusinessException)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("Error while calling ~/Put: " + ex.Message, ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+            }
+        }
 
-                var id = UserService.Create(user);
+        [HttpPut("new-account")]
+        public ActionResult NewAccount([FromBody] dynamic body)
+        {
+            try
+            {
+                var account = new BankAccount
+                {
+                    AccountNumber = body.account_number ?? body.accountNumber,
+                    Currency = new Currency { Name = body.currency },
+                    User = new User { Email = body.user ?? body.email }
+                };
+
+                var id = BankAccountService.Create(account);
                 return Ok(new {id = id});
             }
             catch (Exception ex) when (ex is ArgumentException || ex is BusinessException)

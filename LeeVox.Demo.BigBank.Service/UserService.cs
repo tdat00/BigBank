@@ -13,20 +13,22 @@ namespace LeeVox.Demo.BigBank.Service
     {
         public IJwtService JwtService {get; set;}
         public IUnitOfWork UnitOfWork {get; set;}
-        public IUserRepository Repository {get; set;}
+        public IUserRepository UserRepository {get; set;}
+        public IBankAccountService BankAccountService {get; set;}
         public ILogger<IUserService> Logger {get; set;}
 
-        public UserService(IUnitOfWork unitOfWork, IJwtService jwtService, IUserRepository customerRepository, ILogger<IUserService> logger)
+        public UserService(IUnitOfWork unitOfWork, IJwtService jwtService, IUserRepository userRepository, IBankAccountService bankAccountService, ILogger<IUserService> logger)
         {
             this.UnitOfWork = unitOfWork;
             this.JwtService = jwtService;
-            this.Repository = customerRepository;
+            this.UserRepository = userRepository;
+            this.BankAccountService = bankAccountService;
             this.Logger = logger;
         }
 
         public User Get(int id)
         {
-            return Repository.ById(id);
+            return UserRepository.ById(id);
         }
 
         public User Get(string email)
@@ -36,12 +38,12 @@ namespace LeeVox.Demo.BigBank.Service
                 return null;
             }
 
-            return Repository.All.FirstOrDefault(e => email.IsOrdinalEqual(e.Email));
+            return UserRepository.ByEmail(email);
         }
 
         public IEnumerable<User> Get(string search = null, int skip = 0, int take = 10)
         {
-            var result = Repository.All;
+            var result = UserRepository.All;
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -55,6 +57,8 @@ namespace LeeVox.Demo.BigBank.Service
         }
 
         public int Create(User user)
+            => Create(user, null);
+        public int Create(User user, BankAccount newBankAccount)
         {
             if (string.IsNullOrWhiteSpace(user.Email) || Get(user.Email) != null)
             {
@@ -77,8 +81,14 @@ namespace LeeVox.Demo.BigBank.Service
                 PasswordHash = passwordHash
             };
 
-            Repository.Create(entity);
+            UserRepository.Create(entity);
             UnitOfWork.SaveChanges();
+
+            if (newBankAccount != null)
+            {
+                newBankAccount.User = entity;
+                BankAccountService.Create(newBankAccount);
+            }
 
             return entity.Id;
         }
@@ -122,14 +132,14 @@ namespace LeeVox.Demo.BigBank.Service
 
         public void Delete(int id)
         {
-            var entity = Repository.ById(id);
+            var entity = UserRepository.ById(id);
 
             if (entity == null)
             {
                 throw new BusinessException("User Id does not exist.");
             }
 
-            Repository.Delete(id);
+            UserRepository.Delete(id);
             UnitOfWork.SaveChanges();
         }
 

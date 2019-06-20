@@ -65,19 +65,22 @@ namespace LeeVox.Demo.BigBank.TestApp
                 first_name = "Steve",
                 last_name = "Jobs",
                 email = "steve.jobs@apple.com",
-                password = "Sup3r$ecret"
+                password = "Sup3r$ecret",
+				
+				account_number = "11235813",
+				account_currency = "USD"
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
             Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
 
-            // Console.WriteLine("\r\nLogout.");
-            // response = POST(restClient, "api/user/logout", new {
-            //     email = "admin@big.bank"
-            // }, new Dictionary<string, string>() {
-            //     {"Authorization", $"Bearer {token}"}
-            // });
-            // Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
+            Console.WriteLine("\r\nLogout.");
+            response = POST(restClient, "api/user/logout", new {
+                email = "admin@big.bank"
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+            Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
 
             Console.WriteLine("\r\nEnsure cannot call authenticated API any more.");
             response = PUT(restClient, "api/user", new {

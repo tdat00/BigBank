@@ -9,7 +9,8 @@ namespace LeeVox.Demo.BigBank.Service
         User Get(string email);
         IEnumerable<User> Get(string search = null, int skip = 0, int take = 10);
 
-        int Create(User customer);
+        int Create(User user);
+        int Create(User user, BankAccount newBankAccount);
         string Login(string email, string password);
         void Logout(string token);
         void Delete(int id);

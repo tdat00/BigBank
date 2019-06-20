@@ -41,6 +41,14 @@ namespace LeeVox.Demo.BigBank.Data
                 PasswordSalt = passwordSalt,
                 PasswordHash = passwordHash
             });
+
+            // create currencies
+            builder.Entity<Currency>().HasData(new Currency[]
+            {
+                new Currency { Id = 1000, Name = "VND" },
+                new Currency { Id = 1001, Name = "USD" },
+                new Currency { Id = 1002, Name = "EUR" }
+            });
 #endif
         }
 

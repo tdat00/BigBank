@@ -8,6 +8,8 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
         ActionResult Get(int id, string email = null);
         ActionResult Put(dynamic body);
 
+        ActionResult NewAccount(dynamic body);
+
         [AllowAnonymous]
         ActionResult Login(dynamic body);
         ActionResult Logout();

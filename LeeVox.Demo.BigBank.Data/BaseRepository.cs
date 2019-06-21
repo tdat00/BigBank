@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using LeeVox.Demo.BigBank.Core;
 using LeeVox.Demo.BigBank.Model;
 using Microsoft.EntityFrameworkCore;
@@ -11,8 +12,8 @@ namespace LeeVox.Demo.BigBank.Data
     public abstract class BaseRepository<TEntity> : IRepository<TEntity>
         where TEntity : class, IEntity
     {
-        protected internal IBigBankDbContext DbContext {get; set;}
-        private ILogger<IRepository<TEntity>> Logger { get; set; }
+        protected internal virtual IBigBankDbContext DbContext {get; set;}
+        protected internal virtual ILogger<IRepository<TEntity>> Logger { get; set; }
 
         public BaseRepository(IBigBankDbContext dbContext, ILogger<IRepository<TEntity>> logger)
         {
@@ -20,7 +21,7 @@ namespace LeeVox.Demo.BigBank.Data
             this.Logger = logger;
         }
 
-        public IQueryable<TEntity> All
+        public virtual IQueryable<TEntity> All
         {
             get
             {
@@ -28,27 +29,24 @@ namespace LeeVox.Demo.BigBank.Data
             }
         }
 
-        public IQueryable<TEntity> All_IncludeDeleted
+        public virtual IQueryable<TEntity> IncludeProperty<TProperty>(Expression<Func<TEntity, TProperty>> propertyPath)
         {
-            get
-            {
-                return DbContext.GetDbSet<TEntity>();
-            }
+            return All.IncludeProperty(propertyPath);
         }
 
-        public TEntity ById(int id)
+        public virtual TEntity ById(int id)
         {
             return All.FirstOrDefault(e => e.Id == id);
         }
 
-        public void Create(TEntity entity)
+        public virtual void Create(TEntity entity)
         {
             entity.__Created = DateTime.UtcNow;
             DbContext.GetDbSet<TEntity>().Add(entity);
             Logger.LogDebug($"Create entity '{entity.GetType().Name}': {entity.ToJsonString()}.");
         }
 
-        public void Create(IEnumerable<TEntity> entities)
+        public virtual void Create(IEnumerable<TEntity> entities)
         {
             foreach (var entity in entities)
             {
@@ -57,17 +55,17 @@ namespace LeeVox.Demo.BigBank.Data
             DbContext.GetDbSet<TEntity>().AddRange(entities);
         }
 
-        public void Update(TEntity entity)
+        public virtual void Update(TEntity entity)
         {
             entity.__Updated = DateTime.UtcNow;
             DbContext.AttachEntity(entity).State = EntityState.Modified;
             Logger.LogDebug($"Updated entity '{entity.GetType().Name}': {entity.ToJsonString()}.");
         }
 
-        public void Delete(int id)
+        public virtual void Delete(int id)
             => Delete(ById(id));
 
-        public void Delete(TEntity entity)
+        public virtual void Delete(TEntity entity)
         {
             // do not delete the entity from database
             entity.__Deleted = DateTime.UtcNow;

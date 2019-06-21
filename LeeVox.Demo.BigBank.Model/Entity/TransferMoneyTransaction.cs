@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 
 namespace LeeVox.Demo.BigBank.Model
 {
-    public abstract class TransferMoneyTransaction : Transaction
+    public class TransferMoneyTransaction : Transaction
     {
         public BankAccount FromAccount {get; set;}
     }

@@ -19,7 +19,5 @@ namespace LeeVox.Demo.BigBank.Model
         public virtual User User {get; set;}
 
         public decimal Balance {get; set;}
-
-        public virtual IEnumerable<Transaction> Transaction {get; set;}
     }
 }

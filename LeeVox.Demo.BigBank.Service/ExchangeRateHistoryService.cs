@@ -42,13 +42,12 @@ namespace LeeVox.Demo.BigBank.Service
 
         private ExchangeRateHistory _InsertExchangeRate(DateTime time, string fromCurrency, string toCurrency, decimal rate)
         {
+            fromCurrency.EnsureNotNullOrWhiteSpace(nameof(fromCurrency));
+            toCurrency.EnsureNotNullOrWhiteSpace(nameof(toCurrency));
+
             if (rate <= 0)
             {
-                throw new ArgumentException("Rate should be greater than 0.");
-            }
-            if (string.IsNullOrWhiteSpace(fromCurrency) || string.IsNullOrWhiteSpace(toCurrency))
-            {
-                throw new BusinessException("Currencies are required.");
+                throw new BusinessException("Rate should be greater than 0.");
             }
 
             var timeUtc = time.ToUniversalTime();

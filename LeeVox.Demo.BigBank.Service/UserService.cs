@@ -33,10 +33,7 @@ namespace LeeVox.Demo.BigBank.Service
 
         public User Get(string email)
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                return null;
-            }
+            email.EnsureNotNullOrWhiteSpace(nameof(email));
 
             return UserRepository.ByEmail(email);
         }
@@ -58,10 +55,8 @@ namespace LeeVox.Demo.BigBank.Service
 
         public IEnumerable<BankAccount> GetBankAccounts(string email)
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                throw new ArgumentException("Email is missing.");
-            }
+            email = email.EnsureNotNullOrWhiteSpace(nameof(email));
+            
             var user = Get(email);
             if (user == null)
             {
@@ -76,9 +71,14 @@ namespace LeeVox.Demo.BigBank.Service
 
         public int Create(string email, string password, string firstName, string lastName, string bankAccount, string bankAccountCurrency)
         {
-            if (string.IsNullOrWhiteSpace(email) || Get(email) != null)
+            email.EnsureNotNullOrWhiteSpace(nameof(email));
+            password.EnsureNotNullOrWhiteSpace(nameof(password));
+            firstName.EnsureNotNullOrWhiteSpace(nameof(firstName));
+            lastName.EnsureNotNullOrWhiteSpace(nameof(lastName));
+            
+            if (Get(email) != null)
             {
-                throw new BusinessException("Email is missing or already exists.");
+                throw new BusinessException("Email is taken.");
             }
 
             var random = new CryptoRandom();
@@ -110,14 +110,8 @@ namespace LeeVox.Demo.BigBank.Service
 
         public string Login(string email, string password)
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                throw new ArgumentException(nameof(email));
-            }
-            if (string.IsNullOrWhiteSpace(password))
-            {
-                throw new ArgumentException(nameof(password));
-            }
+            email = email.EnsureNotNullOrWhiteSpace(nameof(email));
+            password = password.EnsureNotNullOrWhiteSpace(nameof(password));
 
             var user = Get(email);
             var found = user != null;
@@ -142,13 +136,14 @@ namespace LeeVox.Demo.BigBank.Service
 
         public void Logout(string session)
         {
+            session.EnsureNotNullOrWhiteSpace(nameof(session));
+
             JwtService.RemoveSession(session);
         }
 
         public void Delete(int id)
         {
             var entity = UserRepository.ById(id);
-
             if (entity == null)
             {
                 throw new BusinessException("User Id does not exist.");
@@ -158,6 +153,7 @@ namespace LeeVox.Demo.BigBank.Service
             UnitOfWork.SaveChanges();
         }
 
-        public void Delete(string email) => Delete(Get(email).Id);
+        public void Delete(string email)
+            => Delete(Get(email).Id);
     }
 }

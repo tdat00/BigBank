@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using LeeVox.Demo.BigBank.Model;
 
 namespace LeeVox.Demo.BigBank.Data
@@ -8,7 +10,7 @@ namespace LeeVox.Demo.BigBank.Data
         where TEntity : IEntity
     {
         IQueryable<TEntity> All {get;}
-        IQueryable<TEntity> All_IncludeDeleted {get;}
+        IQueryable<TEntity> IncludeProperty<TProperty>(Expression<Func<TEntity, TProperty>> propertyPath);
         
         TEntity ById(int id);
 

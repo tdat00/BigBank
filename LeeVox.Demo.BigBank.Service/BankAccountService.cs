@@ -10,27 +10,48 @@ namespace LeeVox.Demo.BigBank.Service
 {
     public class BankAccountService : IBankAccountService
     {
+        public ITransactionRepository TransactionRepository {get; set;}
         public IBankAccountRepository BankAccountRepository {get; set;}
         public ICurrencyRepository CurrencyRepository {get; set;}
         public IUserRepository UserRepository {get; set;}
         public IUnitOfWork UnitOfWork {get; set;}
         public ILogger<IBankAccountService> Logger {get; set;}
         
-        public BankAccountService(IUnitOfWork unitOfWork, IBankAccountRepository bankAccountRepository, ICurrencyRepository currencyRepository, IUserRepository userRepository, ILogger<IBankAccountService> logger)
+        public BankAccountService(IUnitOfWork unitOfWork, ITransactionRepository transactionRepository, IBankAccountRepository bankAccountRepository, ICurrencyRepository currencyRepository, IUserRepository userRepository, ILogger<IBankAccountService> logger)
         {
             this.UnitOfWork = unitOfWork;
+            this.TransactionRepository = transactionRepository;
             this.BankAccountRepository = bankAccountRepository;
             this.CurrencyRepository = currencyRepository;
             this.UserRepository = userRepository;
             this.Logger = logger;
         }
 
-        public BankAccount Get(string accountNumber)
+        public IQueryable<BankAccount> GetByUser(int userId)
         {
-            var accountEntity = BankAccountRepository.ByAccountNumber(accountNumber);
+            return BankAccountRepository.ByUser(userId);
+        }
+        public IQueryable<BankAccount> GetByUser(string userEmail)
+        {
+            userEmail.EnsureNotNullOrWhiteSpace(nameof(userEmail));
+
+            var user = UserRepository.ByEmail(userEmail);
+            if (user == null)
+            {
+                throw new BusinessException($"{nameof(userEmail)} does not exist.");
+            }
+
+            return GetByUser(user.Id);
+        }
+
+        public BankAccount Get(string accountName)
+        {
+            accountName.EnsureNotNullOrWhiteSpace(nameof(accountName));
+
+            var accountEntity = BankAccountRepository.ByName(accountName);
             if (accountEntity == null)
             {
-                throw new BusinessException("Account number does not exist.");
+                throw new BusinessException("Account name does not exist.");
             }
             return accountEntity;
         }
@@ -42,24 +63,19 @@ namespace LeeVox.Demo.BigBank.Service
 
         private int Create(string accountNumber, string currency, User userEntity)
         {
-            if (string.IsNullOrWhiteSpace(accountNumber))
+            accountNumber.EnsureNotNullOrWhiteSpace(nameof(accountNumber));
+            currency.EnsureNotNullOrWhiteSpace(nameof(currency));
+
+            if (userEntity == null)
             {
-                throw new ArgumentException("Account number is required.");
+                throw new BusinessException("User does not exist.");
             }
+
             //TODO: should validate in Entity class, not this.
             accountNumber = accountNumber.Trim();
             if (accountNumber.Length < 10 && accountNumber.Length > 20)
             {
                 throw new BusinessException("Account number format is not valid.");
-            }
-            if (string.IsNullOrWhiteSpace(currency))
-            {
-                throw new ArgumentException("Currency is required.");
-            }
-
-            if (userEntity == null)
-            {
-                throw new BusinessException("User does not exist.");
             }
 
             var currencyEntity = CurrencyRepository.ByName(currency);
@@ -76,6 +92,38 @@ namespace LeeVox.Demo.BigBank.Service
             };
 
             BankAccountRepository.Create(entity);
+            UnitOfWork.SaveChanges();
+            return entity.Id;
+        }
+
+        public int Deposit(User bankOfficer, string account, string currency, decimal amount, string message)
+        {
+            account.EnsureNotNullOrWhiteSpace(nameof(account));
+            currency.EnsureNotNullOrWhiteSpace(nameof(currency));
+
+            if (amount < 0)
+            {
+                throw new BusinessException("Deposit money should be greater than 0.");
+            }
+            
+            var accountEntity = Get(account);
+            var currencyEntity = CurrencyRepository.ByName(currency);
+            if (currencyEntity == null)
+            {
+                throw new BusinessException("Currency does not exist.");
+            }
+
+            var entity = new DepositMoneyTransaction
+            {
+                DateTimeUtc = DateTime.Now.ToUniversalTime(),
+                ToAccount = accountEntity,
+                Currency = currencyEntity,
+                Amount = amount,
+                Message = message,
+                BankOfficer = bankOfficer
+            };
+
+            TransactionRepository.Create(entity);
             UnitOfWork.SaveChanges();
             return entity.Id;
         }

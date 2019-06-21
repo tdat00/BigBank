@@ -1,7 +1,7 @@
 namespace LeeVox.Demo.BigBank.Model
 {
-    public abstract class DepositMoneyTransaction : Transaction
+    public class DepositMoneyTransaction : Transaction
     {
-        public string Note {get; set;}
+        public User BankOfficer {get; set;}
     }
 }

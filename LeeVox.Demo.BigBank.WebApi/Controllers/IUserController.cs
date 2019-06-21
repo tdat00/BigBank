@@ -5,7 +5,7 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
 {
     public interface IUserController : IAuthenticatedController
     {
-        ActionResult Get(int id, string email = null);
+        ActionResult Get(int? id, string email);
         ActionResult Put(dynamic body);
 
         ActionResult RegisterBankAccount(dynamic body);

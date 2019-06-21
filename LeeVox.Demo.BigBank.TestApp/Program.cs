@@ -19,15 +19,6 @@ namespace LeeVox.Demo.BigBank.TestApp
                 (sender, certificate, chain, sslPolicyErrors) => true;
 
 
-            Console.WriteLine("\r\nCall API without authentication.");
-            response = PUT(restClient, "api/exchange-rate", new {
-                time = new DateTime(2019, 01, 01),
-                from = "usd",
-                to = "vnd",
-                rate = "20000"
-            });
-
-
             Console.WriteLine("\r\nTest fail login.");
             response = POST(restClient, "api/user/login", new {
                 email = "admin@big.bank",
@@ -35,7 +26,7 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Console.WriteLine("\r\nTest success login.");
+            Console.WriteLine("\r\nLogin to admin@big.bank");
             response = POST(restClient, "api/user/login", new {
                 email = "admin@big.bank",
                 password = "T0p$ecret"
@@ -69,7 +60,7 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Console.WriteLine("\r\nCreate 1st user.");
+            Console.WriteLine("\r\nCreate user bill.gate@microsoft.com");
             response = PUT(restClient, "api/user", new {
                 first_name = "Bill",
                 last_name = "Gate",
@@ -83,7 +74,7 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Console.WriteLine("\r\nCreate 2nd user without bank account.");
+            Console.WriteLine("\r\nCreate user steve.jobs@apple.com without bank account");
             response = PUT(restClient, "api/user", new {
                 firstName = "Steve",
                 lastName = "Jobs",
@@ -94,7 +85,7 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Console.WriteLine("\r\nCreate 3rd user.");
+            Console.WriteLine("\r\nCreate user dat.le@leevox.com");
             response = PUT(restClient, "api/user", new {
                 FirstName = "Dat",
                 LastName = "Le",
@@ -108,7 +99,7 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Console.WriteLine("\r\nRegister bank account for 2nd user.");
+            Console.WriteLine("\r\nRegister bank account for user steve.jobs@apple.com");
             response = PUT(restClient, "api/user/register-bank-account", new {
                 email = "steve.jobs@apple.com",
 				account = "EUR_Jobs_001",
@@ -118,7 +109,39 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Console.WriteLine("\r\nLogout.");
+            Console.WriteLine("\r\nRegister 2nd account for user dat.le@leevox.com");
+            response = PUT(restClient, "api/user/register-bank-account", new {
+                email = "dat.le@leevox.com",
+				account = "USD_Dat_001",
+				currency = "USD"
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Console.WriteLine("\r\nDeposit $1000 to USD_Gate_001");
+            response = PUT(restClient, "api/bank-account/deposit", new {
+                account = "USD_Gate_001",
+                currency = "USD",
+                amount = 1000,
+                message = "Deposit $1000"
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Console.WriteLine("\r\nDeposit €1234.56 to EUR_Jobs_001");
+            response = PUT(restClient, "api/bank-account/deposit", new {
+                account = "EUR_Jobs_001",
+                currency = "EUR",
+                amount = 1234.56m,
+                message = "Deposit €1234.56"
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Console.WriteLine("\r\nLogout admin@big.bank");
             response = POST(restClient, "api/user/logout", new {
                 email = "admin@big.bank"
             }, new Dictionary<string, string>() {
@@ -132,6 +155,44 @@ namespace LeeVox.Demo.BigBank.TestApp
                 last_name = "Not",
                 email = "be_inserted@database.db",
                 password = "Should not be inserted to database."
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Console.WriteLine("\r\nLogin as dat.le@leevox.com");
+            response = POST(restClient, "api/user/login", new {
+                email = "dat.le@leevox.com",
+                password = "P@ssw0rd"
+            });
+
+
+            content = JsonConvert.DeserializeObject(response.Content);
+            token = content.token;
+
+
+            Console.WriteLine("\r\nShould not able to deposit money");
+            response = PUT(restClient, "api/bank-account/deposit", new {
+                account = "EUR_Jobs_001",
+                currency = "EUR",
+                amount = 1234.56m,
+                message = "Deposit €1234.56"
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Console.WriteLine("\r\nCheck balance of all bank accounts.");
+            response = POST(restClient, "api/bank-account/check-balance", new {
+
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Console.WriteLine("\r\nCheck balance of a specified account.");
+            response = POST(restClient, "api/bank-account/check-balance/USD_Dat_001", new {
+
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using LeeVox.Demo.BigBank.Core;
 using LeeVox.Demo.BigBank.Model;
 using LeeVox.Demo.BigBank.Service;
@@ -25,20 +27,31 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
             this.Logger = logger;
         }
         
-        [Route("{account}")]
+        [Route("check-balance/{account?}")]
         public ActionResult CheckBalance([FromRoute] string account)
         {
             try
             {
-                var accountEntity = BankAccountService.Get(account);
-                Logger.LogError(CurrentLoginInfo.User.Id + "++"+CurrentLoginInfo.User.FirstName + "++" + CurrentLoginInfo.User.LastName + "++" + CurrentLoginInfo.User.Email);
-                Logger.LogError(accountEntity.UserId + "!" + accountEntity.AccountNumber);
-                if (CurrentLoginInfo.User.Id != accountEntity.UserId)
+                var accounts = new List<BankAccount>();
+                if (string.IsNullOrWhiteSpace(account))
                 {
-                    return Unauthorized();
+                    accounts.AddRange(BankAccountService.GetByUser(CurrentLoginInfo.User.Id));
+                }
+                else
+                {
+                    var accountEntity = BankAccountService.Get(account);
+                    if (CurrentLoginInfo.User.Id != accountEntity.UserId)
+                    {
+                        return Unauthorized();
+                    }
+                    accounts.Add(accountEntity);
                 }
 
-                return Ok(new {balance = accountEntity.Balance});
+                return Ok(accounts.Select(x => new {
+                    account = x.AccountNumber,
+                    currency = x.Currency.Name,
+                    balance = x.Balance
+                }));
             }
             catch (Exception ex) when (ex is ArgumentException || ex is BusinessException)
             {
@@ -51,9 +64,34 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
             }
         }
 
+        [Route("deposit")]
         public ActionResult DepositMoney(dynamic body)
         {
-            throw new System.NotImplementedException();
+            //TODO: should check by user role.
+            if (!CurrentLoginInfo.User.Email.EndsWith("@big.bank", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return Unauthorized();
+            }
+            
+            try
+            {
+                string account = body.account ?? body.Account ?? body.account_name ?? body.accountName ?? body.AccountName;
+                string currency = body.currency ?? body.Currency;
+                decimal amount = body.amount ?? body.Amount ?? body.money ?? body.Money;
+                string message = body.message ?? body.Message;
+
+                var id = BankAccountService.Deposit(CurrentLoginInfo.User, account, currency, amount, message);
+                return Ok(new {id = id});
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is BusinessException)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("Error while checking balance: " + ex.Message, ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, ex);
+            }
         }
 
         public ActionResult QueryTransactions(dynamic body)

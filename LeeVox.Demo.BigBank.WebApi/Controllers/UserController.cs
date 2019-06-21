@@ -24,9 +24,9 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
             this.Logger = logger;
         }
 
-        public ActionResult Get([FromRoute] int id, [FromQuery] string email = null)
+        public ActionResult Get([FromRoute] int? id, [FromQuery] string email)
         {
-            var user = string.IsNullOrWhiteSpace(email) ? UserService.Get(id) : UserService.Get(email);
+            var user = id.HasValue ? UserService.Get(id.Value) : UserService.Get(email);
             if (user == null)
             {
                 return NotFound();
@@ -40,14 +40,21 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
         [HttpPut]
         public ActionResult Put([FromBody] dynamic body)
         {
+            //TODO: should check by user role.
+            if (!CurrentLoginInfo.User.Email.EndsWith("@big.bank", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return Unauthorized();
+            }
+
             try
             {
                 string email = body.email ?? body.Email;
                 string password = body.password ?? body.Password;
-                string firstName = body.first_name ?? body.firstName;
-                string lastName = body.last_name ?? body.lastName;
-                string bankAccount = body.account_number ?? body.accountNumber;
-                string bankAccountCurrency = body.account_currency ?? body.accountCurrency;
+                string firstName = body.first_name ?? body.firstName ?? body.FirstName;
+                string lastName = body.last_name ?? body.lastName ?? body.LastName;
+
+                string bankAccount = body.account_number ?? body.accountNumber ?? body.AccountNumber;
+                string bankAccountCurrency = body.account_currency ?? body.accountCurrency ?? body.AccountCurrency;
 
                 var id = UserService.Create(email, password, firstName, lastName, bankAccount, bankAccountCurrency);
                 return Ok(new {id = id});
@@ -66,6 +73,12 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
         [HttpPut("register-bank-account")]
         public ActionResult RegisterBankAccount([FromBody] dynamic body)
         {
+            //TODO: should check by user role.
+            if (!CurrentLoginInfo.User.Email.EndsWith("@big.bank", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return Unauthorized();
+            }
+            
             try
             {
                 string account = body.account_number ?? body.accountNumber ?? body.account;

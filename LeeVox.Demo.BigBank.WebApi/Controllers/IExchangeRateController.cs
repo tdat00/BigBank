@@ -5,6 +5,6 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
 {
     public interface IExchangeRateController : IAuthenticatedController
     {
-        ActionResult Insert(dynamic body);
+        ActionResult Put(dynamic body);
     }
 }

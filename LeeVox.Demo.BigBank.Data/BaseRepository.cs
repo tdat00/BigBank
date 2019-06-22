@@ -13,36 +13,39 @@ namespace LeeVox.Demo.BigBank.Data
         where TEntity : class, IEntity
     {
         protected internal virtual IBigBankDbContext DbContext {get; set;}
+        protected internal virtual DbSet<TEntity> DbSet {get; set;}
         protected internal virtual ILogger<IRepository<TEntity>> Logger { get; set; }
 
         public BaseRepository(IBigBankDbContext dbContext, ILogger<IRepository<TEntity>> logger)
         {
             this.DbContext = dbContext;
+            this.DbSet = dbContext.GetDbSet<TEntity>();
             this.Logger = logger;
         }
 
         public virtual IQueryable<TEntity> All
         {
-            get
-            {
-                return DbContext.GetDbSet<TEntity>().Where(e => !e.__Deleted.HasValue);
-            }
+            get => DbSet.Where(e => !e.__Deleted.HasValue);
         }
 
         public virtual IQueryable<TEntity> IncludeProperty<TProperty>(Expression<Func<TEntity, TProperty>> propertyPath)
+            where TProperty : class
+            => All.IncludeProperty(propertyPath);
+
+        public virtual TEntity LoadReference<TProperty>(TEntity entity, Expression<Func<TEntity, TProperty>> propertyPath)
+            where TProperty : class
         {
-            return All.IncludeProperty(propertyPath);
+            DbContext.AttachEntity(entity).Reference(propertyPath);
+            return entity;
         }
 
         public virtual TEntity ById(int id)
-        {
-            return All.FirstOrDefault(e => e.Id == id);
-        }
+            => All.FirstOrDefault(e => e.Id == id);
 
         public virtual void Create(TEntity entity)
         {
             entity.__Created = DateTime.UtcNow;
-            DbContext.GetDbSet<TEntity>().Add(entity);
+            DbSet.Add(entity);
             Logger.LogDebug($"Create entity '{entity.GetType().Name}': {entity.ToJsonString()}.");
         }
 
@@ -52,7 +55,7 @@ namespace LeeVox.Demo.BigBank.Data
             {
                 entity.__Created = DateTime.UtcNow;
             }
-            DbContext.GetDbSet<TEntity>().AddRange(entities);
+            DbSet.AddRange(entities);
         }
 
         public virtual void Update(TEntity entity)

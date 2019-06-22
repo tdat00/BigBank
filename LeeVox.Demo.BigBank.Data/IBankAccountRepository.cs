@@ -5,5 +5,6 @@ namespace LeeVox.Demo.BigBank.Data
 {
     public interface IBankAccountRepository : IRepository<BankAccount>
     {
+        BankAccount ByAccountName(string accountName);
     }
 }

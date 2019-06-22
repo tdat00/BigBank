@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Net;
 using Newtonsoft.Json;
 using RestSharp;
+using ColorfulConsole = Colorful.Console;
 
 namespace LeeVox.Demo.BigBank.TestApp
 {
@@ -19,14 +22,14 @@ namespace LeeVox.Demo.BigBank.TestApp
                 (sender, certificate, chain, sslPolicyErrors) => true;
 
 
-            Console.WriteLine("\r\nTest fail login.");
+            Step("\r\nTest fail login.");
             response = POST(restClient, "api/user/login", new {
                 email = "admin@big.bank",
                 password = "wrong-password"
             });
 
 
-            Console.WriteLine("\r\nLogin to admin@big.bank");
+            Step("\r\nLogin to admin@big.bank");
             response = POST(restClient, "api/user/login", new {
                 email = "admin@big.bank",
                 password = "T0p$ecret"
@@ -37,7 +40,7 @@ namespace LeeVox.Demo.BigBank.TestApp
             token = content.token;
 
 
-            Console.WriteLine("\r\nInsert exchange rates.");
+            Step("\r\nInsert exchange rates.");
             response = PUT(restClient, "api/exchange-rate", new []{
                 new {
                     time = "2010-01-01T00:00:00.000Z",
@@ -51,30 +54,35 @@ namespace LeeVox.Demo.BigBank.TestApp
                     rate = "22000"
                 }, new {
                     time = "2019-06-01T00:00:00.000Z",
-                    from = "eur",
-                    to = "vnd",
-                    rate = "26000"
-                } 
+                    from = "vnd",
+                    to = "eur",
+                    rate = "0.000037261"
+                }, new {
+                    time = "2019-01-01T00:00:00.000Z",
+                    from = "usd",
+                    to = "eur",
+                    rate = "0.877000000123"
+                },
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
 
 
-            Console.WriteLine("\r\nCreate user bill.gate@microsoft.com");
+            Step("\r\nCreate user bill.gate@microsoft.com");
             response = PUT(restClient, "api/user", new {
                 first_name = "Bill",
                 last_name = "Gate",
                 email = "bill.gate@microsoft.com",
                 password = "P@ssw0rd",
 
-                account_number = "USD_Gate_001",
+                account_name = "USD_Gate_001",
 				account_currency = "USD"
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
 
 
-            Console.WriteLine("\r\nCreate user steve.jobs@apple.com without bank account");
+            Step("\r\nCreate user steve.jobs@apple.com without bank account");
             response = PUT(restClient, "api/user", new {
                 firstName = "Steve",
                 lastName = "Jobs",
@@ -85,21 +93,21 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Console.WriteLine("\r\nCreate user dat.le@leevox.com");
+            Step("\r\nCreate user dat.le@leevox.com");
             response = PUT(restClient, "api/user", new {
                 FirstName = "Dat",
                 LastName = "Le",
                 Email = "dat.le@leevox.com",
                 Password = "P@ssw0rd",
 
-                accountNumber = "VND_Dat_999",
+                accountName = "VND_Dat_999",
 				accountCurrency = "VND"
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
 
 
-            Console.WriteLine("\r\nRegister bank account for user steve.jobs@apple.com");
+            Step("\r\nRegister bank account for user steve.jobs@apple.com");
             response = PUT(restClient, "api/user/register-bank-account", new {
                 email = "steve.jobs@apple.com",
 				account = "EUR_Jobs_001",
@@ -109,7 +117,7 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Console.WriteLine("\r\nRegister 2nd account for user dat.le@leevox.com");
+            Step("\r\nRegister 2nd account for user dat.le@leevox.com");
             response = PUT(restClient, "api/user/register-bank-account", new {
                 email = "dat.le@leevox.com",
 				account = "USD_Dat_001",
@@ -119,29 +127,37 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Console.WriteLine("\r\nDeposit $1000 to USD_Gate_001");
-            response = PUT(restClient, "api/bank-account/deposit", new {
-                account = "USD_Gate_001",
+            Step("\r\nDeposit $1,000,000 to USD_Gate_001");
+            response = POST(restClient, "api/bank-account/deposit/USD_Gate_001", new {
                 currency = "USD",
-                amount = 1000,
-                message = "Deposit $1000"
+                amount = 1_000_000m,
+                message = "Deposit $1 000 000"
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
 
 
-            Console.WriteLine("\r\nDeposit €1234.56 to EUR_Jobs_001");
-            response = PUT(restClient, "api/bank-account/deposit", new {
-                account = "EUR_Jobs_001",
+            Step("\r\nDeposit EUR 987.65 to EUR_Jobs_001");
+            response = POST(restClient, "api/bank-account/deposit/EUR_Jobs_001", new {
                 currency = "EUR",
-                amount = 1234.56m,
-                message = "Deposit €1234.56"
+                amount = 987.65m,
+                message = "Deposit EUR 987.65"
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
 
 
-            Console.WriteLine("\r\nLogout admin@big.bank");
+            Step("\r\nDeposit $123.45 to VND_Dat_999");
+            response = POST(restClient, "api/bank-account/deposit/VND_Dat_999", new {
+                currency = "USD",
+                amount = 123.45m,
+                message = "Deposit $123.45"
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Step("\r\nLogout admin@big.bank");
             response = POST(restClient, "api/user/logout", new {
                 email = "admin@big.bank"
             }, new Dictionary<string, string>() {
@@ -149,7 +165,7 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Console.WriteLine("\r\nShould not call authenticated API any more.");
+            Step("\r\nShould not call authenticated API any more.");
             response = PUT(restClient, "api/user", new {
                 first_name = "Shoud",
                 last_name = "Not",
@@ -160,7 +176,55 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Console.WriteLine("\r\nLogin as dat.le@leevox.com");
+            Step("\r\nLogin as bill.gate@microsoft.com");
+            response = POST(restClient, "api/user/login", new {
+                email = "bill.gate@microsoft.com",
+                password = "P@ssw0rd"
+            });
+
+
+            content = JsonConvert.DeserializeObject(response.Content);
+            token = content.token;
+
+
+            Step("\r\nShould not able to deposit money");
+            response = POST(restClient, "api/bank-account/deposit/USD_Gate_001", new {
+                currency = "EUR",
+                amount = 987.65m,
+                message = "Deposit EUR 987.65"
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Step("\r\nCheck balance of all bank accounts.");
+            response = GET(restClient, "api/bank-account/check-balance", new {
+
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Step("\r\nTransfer EUR 500 from USD_Gate_001 to VND_Dat_999 .");
+            response = POST(restClient, "api/bank-account/transfer/USD_Gate_001", new {
+                to = "VND_Dat_999",
+                currency = "EUR",
+                money = 500m,
+                message = "transfer EUR 500 from USD_Gate_001 to VND_Dat_999."
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Step("\r\nCheck balance of all bank accounts again.");
+            response = GET(restClient, "api/bank-account/check-balance", new {
+
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Step("\r\nLogin as dat.le@leevox.com");
             response = POST(restClient, "api/user/login", new {
                 email = "dat.le@leevox.com",
                 password = "P@ssw0rd"
@@ -171,35 +235,55 @@ namespace LeeVox.Demo.BigBank.TestApp
             token = content.token;
 
 
-            Console.WriteLine("\r\nShould not able to deposit money");
-            response = PUT(restClient, "api/bank-account/deposit", new {
-                account = "EUR_Jobs_001",
+            Step("\r\nCheck balance of all bank accounts.");
+            response = GET(restClient, "api/bank-account/check-balance", new {
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Step("\r\nWithdraw EUR 9,000,000 from VND_Dat_999.");
+            response = POST(restClient, "api/bank-account/withdraw/VND_Dat_999", new {
                 currency = "EUR",
-                amount = 1234.56m,
-                message = "Deposit €1234.56"
+                money = 9_000_000m
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
 
 
-            Console.WriteLine("\r\nCheck balance of all bank accounts.");
-            response = POST(restClient, "api/bank-account/check-balance", new {
+            Step("\r\nWithdraw again, EUR 90 instead of EUR 9,000,000.");
+            response = POST(restClient, "api/bank-account/withdraw/VND_Dat_999", new {
+                currency = "EUR",
+                money = 90m,
+                message = "cash withdraw from ATM"
+            }, new Dictionary<string, string>() {
+                {"Authorization", $"Bearer {token}"}
+            });
+
+
+            Step("\r\nCheck balance of a specified account.");
+            response = GET(restClient, "api/bank-account/check-balance/VND_Dat_999", new {
 
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
 
 
-            Console.WriteLine("\r\nCheck balance of a specified account.");
-            response = POST(restClient, "api/bank-account/check-balance/USD_Dat_001", new {
-
+            Step("\r\nQuery transactions.");
+            response = POST(restClient, "api/bank-account/query/VND_Dat_999", new {
+                from = DateTime.Now.AddDays(-2)
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
 
 
-            Console.WriteLine("\r\nFinished.");
+            Step("\r\nFinished.");
             //Console.ReadLine();
+        }
+
+        static void Step(string message)
+        {
+            ColorfulConsole.WriteLine(message, Color.DarkCyan);
         }
 
         static IRestResponse GET(RestClient client, string url, object body = null, IDictionary<string, string> headers = null)
@@ -225,7 +309,10 @@ namespace LeeVox.Demo.BigBank.TestApp
                 request.AddJsonBody(body);
             }
             var response = client.Execute(request);
-            Console.WriteLine($"Return Code: {response.StatusCode}, Content: {response.Content}");
+            var success = response.StatusCode == HttpStatusCode.OK;
+            Console.Write("Result: ");
+            ColorfulConsole.WriteLine($"{(int)response.StatusCode} {response.StatusCode}", success ? Color.Green : Color.Red);
+            Console.WriteLine($"Content:\r\n{response.Content}");
             return response;
         }
     }

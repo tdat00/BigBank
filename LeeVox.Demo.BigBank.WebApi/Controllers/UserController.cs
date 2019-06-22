@@ -24,19 +24,6 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
             this.Logger = logger;
         }
 
-        public ActionResult Get([FromRoute] int? id, [FromQuery] string email)
-        {
-            var user = id.HasValue ? UserService.Get(id.Value) : UserService.Get(email);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                return Json(user);
-            }
-        }
-
         [HttpPut]
         [Authorize(Roles = "Admin,BankOfficer")]
         public ActionResult Put([FromBody] dynamic body)
@@ -49,11 +36,11 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
                 string firstName = body.first_name ?? body.firstName ?? body.FirstName;
                 string lastName = body.last_name ?? body.lastName ?? body.LastName;
 
-                string bankAccount = body.account_number ?? body.accountNumber ?? body.AccountNumber;
+                string bankAccount = body.account ?? body.Account ?? body.account_name ?? body.accountName ?? body.AccountName;
                 string bankAccountCurrency = body.account_currency ?? body.accountCurrency ?? body.AccountCurrency;
 
-                var id = UserService.Create(email, password, role, firstName, lastName, bankAccount, bankAccountCurrency);
-                return Ok(new {id = id});
+                var (userId, accountId) = UserService.Create(email, password, role, firstName, lastName, bankAccount, bankAccountCurrency);
+                return Ok(new {user = userId, account = accountId});
             }
             catch (Exception ex) when (ex is ArgumentException || ex is BusinessException)
             {
@@ -72,7 +59,7 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
         {
             try
             {
-                string account = body.account_number ?? body.accountNumber ?? body.account;
+                string account = body.account ?? body.Account ?? body.account_name ?? body.accountName ?? body.AccountName;
                 string currency = body.currency;
                 int? userId = ((string)(body.user_id ?? body.userId ?? body.user)).ParseToInt();
                 string email = body.user_email ?? body.userEmail ?? body.email ?? body.user;
@@ -80,7 +67,7 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
                 var id = userId.HasValue
                     ? BankAccountService.Create(account, currency, userId.Value)
                     : BankAccountService.Create(account, currency, email);
-                return Ok(new {id = id});
+                return Ok(new {account = id});
             }
             catch (Exception ex) when (ex is ArgumentException || ex is BusinessException)
             {

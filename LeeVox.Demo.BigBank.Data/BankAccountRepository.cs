@@ -16,5 +16,8 @@ namespace LeeVox.Demo.BigBank.Data
             : base(dbContext, logger)
         {
         }
+
+        public BankAccount ByAccountName(string accountName)
+            => All.FirstOrDefault(x => accountName.IsOrdinalEqual(x.AccountName));
     }
 }

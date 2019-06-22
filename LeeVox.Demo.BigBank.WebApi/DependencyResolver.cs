@@ -1,4 +1,5 @@
 using LeeVox.Demo.BigBank.Data;
+using LeeVox.Demo.BigBank.Model;
 using LeeVox.Demo.BigBank.Service;
 using LeeVox.Demo.BigBank.WebApi.Controllers;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +29,7 @@ namespace LeeVox.Demo.BigBank.WebApi
             services.AddScoped<IBankAccountRepository, BankAccountRepository>();
             services.AddScoped<ICurrencyRepository, CurrencyRepository>();
             services.AddScoped<IExchangeRateHistoryRepository, ExchangeRateHistoryRepository>();
-            services.AddScoped<ITransactionRepository, TransactionRepository>();
+            services.AddScoped<IRepository<Transaction>, TransactionRepository>();
             
             services.AddDbContext<InMemoryBigBankDbContext>();
             services.AddScoped<IBigBankDbContext>(x => x.GetRequiredService<InMemoryBigBankDbContext>());

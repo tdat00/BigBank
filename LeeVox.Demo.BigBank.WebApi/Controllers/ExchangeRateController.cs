@@ -24,8 +24,8 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin,BankOfficer")]
-        public ActionResult Insert([FromBody] dynamic body)
+        [Authorize(Roles = "Admin, BankOfficer")]
+        public ActionResult Put([FromBody] dynamic body)
         {
             try
             {

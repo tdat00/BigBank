@@ -1,11 +1,12 @@
+using System.Linq;
 using LeeVox.Demo.BigBank.Model;
 using Microsoft.Extensions.Logging;
 
 namespace LeeVox.Demo.BigBank.Data
 {
-    public class TransactionRepository : BaseRepository<Transaction>, ITransactionRepository
+    public class TransactionRepository : BaseRepository<Transaction>, IRepository<Transaction>
     {
-        public TransactionRepository(IBigBankDbContext dbContext, ILogger<ITransactionRepository> logger)
+        public TransactionRepository(IBigBankDbContext dbContext, ILogger<TransactionRepository> logger)
             : base(dbContext, logger)
         {
         }

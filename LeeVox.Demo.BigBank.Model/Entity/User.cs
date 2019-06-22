@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
@@ -41,8 +40,5 @@ namespace LeeVox.Demo.BigBank.Model
         public string PasswordSalt {get; set;}
         [IgnoreDataMember]
         public string PasswordHash {get; set;}
-
-        [IgnoreDataMember]
-        public virtual IEnumerable<BankAccount> Accounts {get; set;}
     }
 }

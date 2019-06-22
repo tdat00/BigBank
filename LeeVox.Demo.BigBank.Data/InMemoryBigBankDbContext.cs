@@ -12,6 +12,9 @@ namespace LeeVox.Demo.BigBank.Data
     {
         public DbSet<User> Users {get; set;}
         public DbSet<Transaction> Transactions {get; }
+        public DbSet<DepositMoneyTransaction> DepositMoneyTransactions {get; }
+        public DbSet<WithdrawMoneyTransaction> WithdrawMoneyTransactions {get; }
+        public DbSet<TransferMoneyTransaction> TransferMoneyTransactions {get; }
         public DbSet<BankAccount> BankAccounts {get; }
         public DbSet<Currency> Currencies {get; }
         public DbSet<ExchangeRateHistory> ExchangeRateHistories {get; }

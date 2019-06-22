@@ -54,28 +54,25 @@ namespace LeeVox.Demo.BigBank.Service
         }
 
         public IEnumerable<BankAccount> GetBankAccounts(string email)
-        {
-            email = email.EnsureNotNullOrWhiteSpace(nameof(email));
-            
-            var user = Get(email);
-            user.EnsureNotNull("Email");
+            => BankAccountService.GetByUser(email);
 
-            return user.Accounts;
-        }
-
-        public int Create(string email, string password, string role, string firstName, string lastName)
-            => Create(email, password, role, firstName, lastName, null, null);
-
-        public int Create(string email, string password, string role, string firstName, string lastName, string bankAccount, string bankAccountCurrency)
+        public (int userId, int? bankAccountId) Create(string email, string password, string role, string firstName, string lastName, string bankAccount, string bankAccountCurrency)
         {
             password.EnsureNotNullOrWhiteSpace(nameof(password));
             email.EnsureNotNullOrWhiteSpace(nameof(email));
             firstName.EnsureNotNullOrWhiteSpace(nameof(firstName));
             lastName.EnsureNotNullOrWhiteSpace(nameof(lastName));
+
+            var createBankAccount = !string.IsNullOrWhiteSpace(bankAccount) && !string.IsNullOrWhiteSpace(bankAccountCurrency);
             
             if (UserRepository.ByEmail(email) != null)
             {
                 throw new BusinessException("Email is taken.");
+            }
+
+            if (createBankAccount && BankAccountService.Exists(bankAccount))
+            {
+                throw new BusinessException("Bank account name is taken.");
             }
 
             if (!Enum.TryParse(role, out UserRole userRole))
@@ -100,13 +97,9 @@ namespace LeeVox.Demo.BigBank.Service
 
             UserRepository.Create(entity);
             UnitOfWork.SaveChanges();
-            //TODO: using transaction in real db.
-            if (!string.IsNullOrWhiteSpace(bankAccount) && !string.IsNullOrWhiteSpace(bankAccountCurrency))
-            {
-                BankAccountService.Create(bankAccount, bankAccountCurrency, entity.Id);
-            }
 
-            return entity.Id;
+            int? bankAccountId = !createBankAccount ? (int?)null : BankAccountService.Create(bankAccount, bankAccountCurrency, entity.Id);
+            return (entity.Id, bankAccountId);
         }
 
         public string Login(string email, string password)

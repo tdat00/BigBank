@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace LeeVox.Demo.BigBank.WebApi
 {
@@ -32,6 +33,13 @@ namespace LeeVox.Demo.BigBank.WebApi
             services.AddMvcCore()
                 .AddCors()
                 .AddAuthorization()
+                .AddJsonOptions(option =>
+                {
+                    option.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+#if DEBUG
+                    option.SerializerSettings.Formatting = Formatting.Indented;
+#endif
+                })
                 .AddJsonFormatters()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 

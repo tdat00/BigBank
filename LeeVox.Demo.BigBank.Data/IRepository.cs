@@ -10,7 +10,8 @@ namespace LeeVox.Demo.BigBank.Data
         where TEntity : IEntity
     {
         IQueryable<TEntity> All {get;}
-        IQueryable<TEntity> IncludeProperty<TProperty>(Expression<Func<TEntity, TProperty>> propertyPath);
+        IQueryable<TEntity> IncludeProperty<TProperty>(Expression<Func<TEntity, TProperty>> propertyPath)
+            where TProperty : class;
         
         TEntity ById(int id);
 

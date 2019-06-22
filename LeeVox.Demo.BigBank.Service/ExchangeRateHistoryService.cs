@@ -33,18 +33,18 @@ namespace LeeVox.Demo.BigBank.Service
         }
 
         public decimal GetExchangeRate(string fromCurrency, string toCurrency, DateTime time)
+            => fromCurrency.IsOrdinalEqual(toCurrency, true) ? 1m : GetExchangeRate(CurrencyService.Get(fromCurrency), CurrencyService.Get(toCurrency), time);
+
+        public decimal GetExchangeRate(Currency from, Currency to, DateTime timeUtc)
         {
-            if (fromCurrency.IsOrdinalEqual(toCurrency, true))
+            if (from.Id == to.Id)
             {
                 return 1m;
             }
 
-            var fromCurrencyEntity = CurrencyService.Get(fromCurrency);
-            var toCurrencyEntity = CurrencyService.Get(toCurrency);
-
-            var exchangeRateAtTime = ExchangeRateHistoryRepository.All.FirstOrDefault(x => x.FromCurrencyId == fromCurrencyEntity.Id && x.ToCurrencyId == toCurrencyEntity.Id && x.DateTimeUtc <= time);
-            var exchangeRateRevertedAtTime = ExchangeRateHistoryRepository.All.FirstOrDefault(x => x.FromCurrencyId == toCurrencyEntity.Id && x.ToCurrencyId == fromCurrencyEntity.Id && x.DateTimeUtc <= time);
-            if (exchangeRateAtTime == null ||exchangeRateRevertedAtTime == null)
+            var exchangeRateAtTime = ExchangeRateHistoryRepository.All.FirstOrDefault(x => x.FromCurrencyId == from.Id && x.ToCurrencyId == to.Id && x.DateTimeUtc <= timeUtc);
+            var exchangeRateRevertedAtTime = ExchangeRateHistoryRepository.All.FirstOrDefault(x => x.FromCurrencyId == to.Id && x.ToCurrencyId == from.Id && x.DateTimeUtc <= timeUtc);
+            if (exchangeRateAtTime == null && exchangeRateRevertedAtTime == null)
             {
                 throw new BusinessException("Cannot get exchange rate at that time.");
             }

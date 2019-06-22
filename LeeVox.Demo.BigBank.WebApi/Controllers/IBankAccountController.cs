@@ -6,8 +6,8 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
     public interface IBankAccountController : IAuthenticatedController
     {
         ActionResult CheckBalance(string account);
-        ActionResult DepositMoney(dynamic body);
-        ActionResult TransferMoney(dynamic body);
-        ActionResult QueryTransactions(dynamic body);
+        ActionResult DepositMoney(string account, dynamic body);
+        ActionResult TransferMoney(string account, dynamic body);
+        ActionResult QueryTransactions(string account, dynamic body);
     }
 }

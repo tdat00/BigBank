@@ -24,14 +24,9 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
         }
 
         [HttpPut]
+        [Authorize(Roles = "Admin,BankOfficer")]
         public ActionResult Insert([FromBody] dynamic body)
         {
-            //TODO: should check by user role.
-            if (!CurrentLoginInfo.User.Email.EndsWith("@big.bank", StringComparison.CurrentCultureIgnoreCase))
-            {
-                return Unauthorized();
-            }
-            
             try
             {
                 var rates = new List<(DateTime, string, string, decimal)>();

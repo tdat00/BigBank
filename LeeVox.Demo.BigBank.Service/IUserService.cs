@@ -11,8 +11,8 @@ namespace LeeVox.Demo.BigBank.Service
 
         IEnumerable<BankAccount> GetBankAccounts(string email);
 
-        int Create(string email, string password, string firstName, string lastName);
-        int Create(string email, string password, string firstName, string lastName, string bankAccount, string bankAccountCurrency);
+        int Create(string email, string password, string role, string firstName, string lastName);
+        int Create(string email, string password, string role, string firstName, string lastName, string bankAccount, string bankAccountCurrency);
         string Login(string email, string password);
         void Logout(string token);
         void Delete(int id);

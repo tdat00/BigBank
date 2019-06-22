@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication;
 using LeeVox.Sdk;
 using System.Linq;
 using System.Security.Claims;
+using System.Collections.Generic;
+using System;
 
 namespace LeeVox.Demo.BigBank.WebApi.Middleware
 {
@@ -16,12 +18,19 @@ namespace LeeVox.Demo.BigBank.WebApi.Middleware
             {
                 var httpContext = provider.GetService<IHttpContextAccessor>();
                 var authInfo = httpContext.HttpContext.AuthenticateAsync().WaitAndReturn();
+                var claims = authInfo?.Principal?.Claims ?? new List<Claim>();
 
-                var userId = authInfo?.Principal?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier || x.Type == "id")?.Value;
-                var session = authInfo?.Principal?.Claims?.FirstOrDefault(x => x.Type == "session")?.Value;
-                var first_name = authInfo?.Principal?.Claims?.FirstOrDefault(x => x.Type == "first_name")?.Value;
-                var last_name = authInfo?.Principal?.Claims?.FirstOrDefault(x => x.Type == "last_name")?.Value;
-                var email = authInfo?.Principal?.Claims?.FirstOrDefault(x => x.Type == ClaimTypes.Email || x.Type == "email")?.Value;
+                var session = claims.FirstOrDefault(x => "session".IsOrdinalEqual(x.Type, true))?.Value;
+                var userId = claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier || "id".IsOrdinalEqual(x.Type, true))?.Value;
+                var first_name = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name || "first_name".IsOrdinalEqual(x.Type, true))?.Value;
+                var last_name = claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName || "last_name".IsOrdinalEqual(x.Type, true))?.Value;
+                var email = claims.FirstOrDefault(x => x.Type == ClaimTypes.Email || "email".IsOrdinalEqual(x.Type, true))?.Value;
+                
+                var roleClaims = claims.Where(x => x.Type == ClaimTypes.Role || "role".IsOrdinalEqual(x.Type, true)) ?? new List<Claim>();
+                var roles = string.Join(",", roleClaims.Select(x => x.Value));
+                if (!Enum.TryParse(roles, out UserRole userRole))
+                    userRole = UserRole.Customer;
+                    
                 return new CurrentLoginInfo {
                     Session = session,
                     User = new User
@@ -29,7 +38,8 @@ namespace LeeVox.Demo.BigBank.WebApi.Middleware
                         Id = userId.ParseToInt(-1),
                         FirstName = first_name,
                         LastName = last_name,
-                        Email = email
+                        Email = email,
+                        Role = userRole
                     }
                 };
             });

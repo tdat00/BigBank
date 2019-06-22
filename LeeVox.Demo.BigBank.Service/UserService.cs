@@ -66,10 +66,10 @@ namespace LeeVox.Demo.BigBank.Service
             return user.Accounts;
         }
 
-        public int Create(string email, string password, string firstName, string lastName)
-            => Create(email, password, firstName, lastName, null, null);
+        public int Create(string email, string password, string role, string firstName, string lastName)
+            => Create(email, password, role, firstName, lastName, null, null);
 
-        public int Create(string email, string password, string firstName, string lastName, string bankAccount, string bankAccountCurrency)
+        public int Create(string email, string password, string role, string firstName, string lastName, string bankAccount, string bankAccountCurrency)
         {
             email.EnsureNotNullOrWhiteSpace(nameof(email));
             password.EnsureNotNullOrWhiteSpace(nameof(password));
@@ -81,6 +81,9 @@ namespace LeeVox.Demo.BigBank.Service
                 throw new BusinessException("Email is taken.");
             }
 
+            if (!Enum.TryParse(role, out UserRole userRole))
+                userRole = UserRole.Customer;
+
             var random = new CryptoRandom();
             var hasher = new CryptoHash();
             var salt = random.RandomBytes(16).GetHexaString();
@@ -89,9 +92,10 @@ namespace LeeVox.Demo.BigBank.Service
 
             var entity = new User
             {
+                Email = email,
+                Role = userRole,
                 FirstName = firstName,
                 LastName = lastName,
-                Email = email,
                 
                 PasswordSalt = salt,
                 PasswordHash = passwordHash

@@ -44,6 +44,7 @@ namespace LeeVox.Demo.BigBank.Data
                 FirstName = "Super",
                 LastName = "Admin",
                 Email = "admin@big.bank",
+                Role = UserRole.Admin | UserRole.BankOfficer,
                 PasswordSalt = passwordSalt,
                 PasswordHash = passwordHash
             });

@@ -65,14 +65,9 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
         }
 
         [Route("deposit")]
+        [Authorize(Roles = "BankOfficer")]
         public ActionResult DepositMoney(dynamic body)
         {
-            //TODO: should check by user role.
-            if (!CurrentLoginInfo.User.Email.EndsWith("@big.bank", StringComparison.CurrentCultureIgnoreCase))
-            {
-                return Unauthorized();
-            }
-            
             try
             {
                 string account = body.account ?? body.Account ?? body.account_name ?? body.accountName ?? body.AccountName;

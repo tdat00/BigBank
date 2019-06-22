@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using LeeVox.Demo.BigBank.Core;
 using LeeVox.Demo.BigBank.Model;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Linq;
 
 namespace LeeVox.Demo.BigBank.Service
 {
@@ -28,12 +30,13 @@ namespace LeeVox.Demo.BigBank.Service
             var token = string.Empty;
             var random = new CryptoRandom();
             var session = random.RandomBytes(16).GetHexaString();
-            var claim = new[]
+            var roles = user.Role.ToString().Split(',').Select(x => new Claim(ClaimTypes.Role, x.Trim()));
+            var claim = new List<Claim>(roles)
             {
-                new Claim("id", user.Id.ToString()),
-                new Claim("first_name", user.FirstName),
-                new Claim("last_name", user.LastName),
-                new Claim("email", user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.FirstName),
+                new Claim(ClaimTypes.GivenName, user.LastName),
+                new Claim(ClaimTypes.Email, user.Email),
                 new Claim("session", session)
             };
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtConfig.Secret));

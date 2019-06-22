@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -5,6 +6,13 @@ using System.Runtime.Serialization;
 
 namespace LeeVox.Demo.BigBank.Model
 {
+    [Flags]
+    public enum UserRole
+    {
+        Customer,
+        BankOfficer,
+        Admin
+    }
     public class User : BaseEntity, IEntity
     {
         [Required]
@@ -23,6 +31,8 @@ namespace LeeVox.Demo.BigBank.Model
         [EmailAddress]
         //TODO: create unique index
         public string Email {get; set;}
+
+        public UserRole Role {get; set;}
 
         [NotMapped]
         [IgnoreDataMember]

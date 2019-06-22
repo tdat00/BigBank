@@ -38,25 +38,21 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
         }
 
         [HttpPut]
+        [Authorize(Roles = "Admin,BankOfficer")]
         public ActionResult Put([FromBody] dynamic body)
         {
-            //TODO: should check by user role.
-            if (!CurrentLoginInfo.User.Email.EndsWith("@big.bank", StringComparison.CurrentCultureIgnoreCase))
-            {
-                return Unauthorized();
-            }
-
             try
             {
                 string email = body.email ?? body.Email;
                 string password = body.password ?? body.Password;
+                string role = body.role ?? body.Role;
                 string firstName = body.first_name ?? body.firstName ?? body.FirstName;
                 string lastName = body.last_name ?? body.lastName ?? body.LastName;
 
                 string bankAccount = body.account_number ?? body.accountNumber ?? body.AccountNumber;
                 string bankAccountCurrency = body.account_currency ?? body.accountCurrency ?? body.AccountCurrency;
 
-                var id = UserService.Create(email, password, firstName, lastName, bankAccount, bankAccountCurrency);
+                var id = UserService.Create(email, password, role, firstName, lastName, bankAccount, bankAccountCurrency);
                 return Ok(new {id = id});
             }
             catch (Exception ex) when (ex is ArgumentException || ex is BusinessException)
@@ -71,14 +67,9 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
         }
 
         [HttpPut("register-bank-account")]
+        [Authorize(Roles = "BankOfficer")]
         public ActionResult RegisterBankAccount([FromBody] dynamic body)
         {
-            //TODO: should check by user role.
-            if (!CurrentLoginInfo.User.Email.EndsWith("@big.bank", StringComparison.CurrentCultureIgnoreCase))
-            {
-                return Unauthorized();
-            }
-            
             try
             {
                 string account = body.account_number ?? body.accountNumber ?? body.account;

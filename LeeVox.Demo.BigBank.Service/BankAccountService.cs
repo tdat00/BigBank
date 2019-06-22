@@ -1,60 +1,63 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using LeeVox.Demo.BigBank.Core;
 using LeeVox.Demo.BigBank.Data;
 using LeeVox.Demo.BigBank.Model;
+using LeeVox.Sdk;
 using Microsoft.Extensions.Logging;
 
 namespace LeeVox.Demo.BigBank.Service
 {
     public class BankAccountService : IBankAccountService
     {
-        public ITransactionRepository TransactionRepository {get; set;}
+        public ICurrencyService CurrencyService {get; set;}
         public IBankAccountRepository BankAccountRepository {get; set;}
-        public ICurrencyRepository CurrencyRepository {get; set;}
         public IUserRepository UserRepository {get; set;}
         public IUnitOfWork UnitOfWork {get; set;}
         public ILogger<IBankAccountService> Logger {get; set;}
         
-        public BankAccountService(IUnitOfWork unitOfWork, ITransactionRepository transactionRepository, IBankAccountRepository bankAccountRepository, ICurrencyRepository currencyRepository, IUserRepository userRepository, ILogger<IBankAccountService> logger)
+        public BankAccountService(
+            ICurrencyService currencyService,
+
+            IBankAccountRepository bankAccountRepository,
+            IUserRepository userRepository,
+
+            IUnitOfWork unitOfWork,
+            ILogger<IBankAccountService> logger
+        )
         {
-            this.UnitOfWork = unitOfWork;
-            this.TransactionRepository = transactionRepository;
+            this.CurrencyService = currencyService;
+
             this.BankAccountRepository = bankAccountRepository;
-            this.CurrencyRepository = currencyRepository;
             this.UserRepository = userRepository;
+
+            this.UnitOfWork = unitOfWork;
             this.Logger = logger;
         }
 
+        public BankAccount Get(int id)
+        {
+            var entity = BankAccountRepository.ById(id);
+            entity.EnsureNotNull("Bank account");
+
+            return entity;
+        }
+
+        public BankAccount Get(string accountNumber)
+        {
+            accountNumber.EnsureNotNullOrWhiteSpace(nameof(accountNumber));
+            
+            var entity = BankAccountRepository.All.FirstOrDefault(x => accountNumber.IsOrdinalEqual(x.AccountNumber, true));
+            entity.EnsureNotNull("Bank account");
+            
+            return entity;
+        }
+
         public IQueryable<BankAccount> GetByUser(int userId)
-        {
-            return BankAccountRepository.ByUser(userId);
-        }
+            => BankAccountRepository.All.Where(x => x.UserId == userId);
+
         public IQueryable<BankAccount> GetByUser(string userEmail)
-        {
-            userEmail.EnsureNotNullOrWhiteSpace(nameof(userEmail));
-
-            var user = UserRepository.ByEmail(userEmail);
-            if (user == null)
-            {
-                throw new BusinessException($"{nameof(userEmail)} does not exist.");
-            }
-
-            return GetByUser(user.Id);
-        }
-
-        public BankAccount Get(string accountName)
-        {
-            accountName.EnsureNotNullOrWhiteSpace(nameof(accountName));
-
-            var accountEntity = BankAccountRepository.ByName(accountName);
-            if (accountEntity == null)
-            {
-                throw new BusinessException("Account name does not exist.");
-            }
-            return accountEntity;
-        }
+            => BankAccountRepository.All.IncludeProperty(x => x.User).Where(x => userEmail.IsOrdinalEqual(x.User.Email, true));
 
         public int Create(string accountNumber, string currency, int userId)
             => Create(accountNumber, currency, UserRepository.ById(userId));
@@ -65,11 +68,7 @@ namespace LeeVox.Demo.BigBank.Service
         {
             accountNumber.EnsureNotNullOrWhiteSpace(nameof(accountNumber));
             currency.EnsureNotNullOrWhiteSpace(nameof(currency));
-
-            if (userEntity == null)
-            {
-                throw new BusinessException("User does not exist.");
-            }
+            userEntity.EnsureNotNull("User");
 
             //TODO: should validate in Entity class, not this.
             accountNumber = accountNumber.Trim();
@@ -78,11 +77,8 @@ namespace LeeVox.Demo.BigBank.Service
                 throw new BusinessException("Account number format is not valid.");
             }
 
-            var currencyEntity = CurrencyRepository.ByName(currency);
-            if (currencyEntity == null)
-            {
-                throw new BusinessException("Currency does not exist.");
-            }
+            var currencyEntity = CurrencyService.Get(currency);
+            currencyEntity.EnsureNotNull("Currency");
 
             var entity = new BankAccount
             {
@@ -92,38 +88,6 @@ namespace LeeVox.Demo.BigBank.Service
             };
 
             BankAccountRepository.Create(entity);
-            UnitOfWork.SaveChanges();
-            return entity.Id;
-        }
-
-        public int Deposit(User bankOfficer, string account, string currency, decimal amount, string message)
-        {
-            account.EnsureNotNullOrWhiteSpace(nameof(account));
-            currency.EnsureNotNullOrWhiteSpace(nameof(currency));
-
-            if (amount < 0)
-            {
-                throw new BusinessException("Deposit money should be greater than 0.");
-            }
-            
-            var accountEntity = Get(account);
-            var currencyEntity = CurrencyRepository.ByName(currency);
-            if (currencyEntity == null)
-            {
-                throw new BusinessException("Currency does not exist.");
-            }
-
-            var entity = new DepositMoneyTransaction
-            {
-                DateTimeUtc = DateTime.Now.ToUniversalTime(),
-                ToAccount = accountEntity,
-                Currency = currencyEntity,
-                Amount = amount,
-                Message = message,
-                BankOfficer = bankOfficer
-            };
-
-            TransactionRepository.Create(entity);
             UnitOfWork.SaveChanges();
             return entity.Id;
         }

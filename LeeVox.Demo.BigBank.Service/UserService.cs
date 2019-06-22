@@ -12,45 +12,45 @@ namespace LeeVox.Demo.BigBank.Service
     public class UserService : IUserService
     {
         public IJwtService JwtService {get; set;}
-        public IUnitOfWork UnitOfWork {get; set;}
-        public IUserRepository UserRepository {get; set;}
         public IBankAccountService BankAccountService {get; set;}
+        public IUserRepository UserRepository {get; set;}
+        public IUnitOfWork UnitOfWork {get; set;}
         public ILogger<IUserService> Logger {get; set;}
 
-        public UserService(IUnitOfWork unitOfWork, IJwtService jwtService, IUserRepository userRepository, IBankAccountService bankAccountService, ILogger<IUserService> logger)
+        public UserService(
+            IJwtService jwtService,
+            IBankAccountService bankAccountService,
+
+            IUserRepository userRepository,
+
+            IUnitOfWork unitOfWork,
+            ILogger<IUserService> logger)
         {
-            this.UnitOfWork = unitOfWork;
             this.JwtService = jwtService;
-            this.UserRepository = userRepository;
             this.BankAccountService = bankAccountService;
+            
+            this.UserRepository = userRepository;
+
+            this.UnitOfWork = unitOfWork;
             this.Logger = logger;
         }
 
         public User Get(int id)
         {
-            return UserRepository.ById(id);
+            var entity = UserRepository.ById(id);
+            entity.EnsureNotNull("User");
+
+            return entity;
         }
 
         public User Get(string email)
         {
             email.EnsureNotNullOrWhiteSpace(nameof(email));
 
-            return UserRepository.ByEmail(email);
-        }
+            var entity = UserRepository.ByEmail(email);
+            entity.EnsureNotNull("Email");
 
-        public IEnumerable<User> Get(string search = null, int skip = 0, int take = 10)
-        {
-            var result = UserRepository.All;
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                result = result.Where(
-                    e => e.Name.Contains(search, StringComparison.InvariantCultureIgnoreCase)
-                        || e.Email.Contains(search, StringComparison.InvariantCultureIgnoreCase)
-                );
-            }
-            
-            return result.OrderBy(e => e.Id).Skip(skip).Take(take);
+            return entity;
         }
 
         public IEnumerable<BankAccount> GetBankAccounts(string email)
@@ -58,10 +58,7 @@ namespace LeeVox.Demo.BigBank.Service
             email = email.EnsureNotNullOrWhiteSpace(nameof(email));
             
             var user = Get(email);
-            if (user == null)
-            {
-                throw new BusinessException("Email does not exist.");
-            }
+            user.EnsureNotNull("Email");
 
             return user.Accounts;
         }
@@ -71,12 +68,12 @@ namespace LeeVox.Demo.BigBank.Service
 
         public int Create(string email, string password, string role, string firstName, string lastName, string bankAccount, string bankAccountCurrency)
         {
-            email.EnsureNotNullOrWhiteSpace(nameof(email));
             password.EnsureNotNullOrWhiteSpace(nameof(password));
+            email.EnsureNotNullOrWhiteSpace(nameof(email));
             firstName.EnsureNotNullOrWhiteSpace(nameof(firstName));
             lastName.EnsureNotNullOrWhiteSpace(nameof(lastName));
             
-            if (Get(email) != null)
+            if (UserRepository.ByEmail(email) != null)
             {
                 throw new BusinessException("Email is taken.");
             }
@@ -114,21 +111,14 @@ namespace LeeVox.Demo.BigBank.Service
 
         public string Login(string email, string password)
         {
-            email = email.EnsureNotNullOrWhiteSpace(nameof(email));
             password = password.EnsureNotNullOrWhiteSpace(nameof(password));
 
             var user = Get(email);
-            var found = user != null;
+            var hasher = new CryptoHash();
+            //TODO: use slow hash instead of SHA
+            var passwordHash = hasher.Sha256(user.PasswordSalt + password).GetHexaString();
 
-            if (found)
-            {
-                var hasher = new CryptoHash();
-                //TODO: use slow hash instead of SHA
-                var passwordHash = hasher.Sha256(user.PasswordSalt + password).GetHexaString();
-                found = passwordHash.IsOrdinalEqual(user.PasswordHash, true);
-            }
-
-            if (found)
+            if (passwordHash.IsOrdinalEqual(user.PasswordHash, true))
             {
                 return JwtService.GenerateToken(user);
             }
@@ -140,24 +130,7 @@ namespace LeeVox.Demo.BigBank.Service
 
         public void Logout(string session)
         {
-            session.EnsureNotNullOrWhiteSpace(nameof(session));
-
             JwtService.RemoveSession(session);
         }
-
-        public void Delete(int id)
-        {
-            var entity = UserRepository.ById(id);
-            if (entity == null)
-            {
-                throw new BusinessException("User Id does not exist.");
-            }
-
-            UserRepository.Delete(id);
-            UnitOfWork.SaveChanges();
-        }
-
-        public void Delete(string email)
-            => Delete(Get(email).Id);
     }
 }

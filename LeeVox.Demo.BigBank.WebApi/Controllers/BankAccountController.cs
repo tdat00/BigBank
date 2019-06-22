@@ -17,17 +17,20 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
     {
         public IUserService UserService {get; set;}
         public IBankAccountService BankAccountService {get; set;}
+        public ITransactionService TransactionService {get; set;}
         public ILogger<IUserController> Logger {get; set;}
 
-        public BankAccountController(CurrentLoginInfo currentLoginInfo, IUserService userService, IBankAccountService bankAccountService, ILogger<IUserController> logger)
+        public BankAccountController(CurrentLoginInfo currentLoginInfo, IUserService userService, IBankAccountService bankAccountService, ITransactionService transactionService, ILogger<IUserController> logger)
         {
             this.CurrentLoginInfo = currentLoginInfo;
             this.UserService = userService;
             this.BankAccountService = bankAccountService;
+            this.TransactionService = transactionService;
             this.Logger = logger;
         }
         
         [Route("check-balance/{account?}")]
+        [Authorize(Roles = "BankOfficer, Customer")]
         public ActionResult CheckBalance([FromRoute] string account)
         {
             try
@@ -72,10 +75,10 @@ namespace LeeVox.Demo.BigBank.WebApi.Controllers
             {
                 string account = body.account ?? body.Account ?? body.account_name ?? body.accountName ?? body.AccountName;
                 string currency = body.currency ?? body.Currency;
-                decimal amount = body.amount ?? body.Amount ?? body.money ?? body.Money;
+                decimal money = body.money ?? body.Money ?? body.amount ?? body.Amount;
                 string message = body.message ?? body.Message;
 
-                var id = BankAccountService.Deposit(CurrentLoginInfo.User, account, currency, amount, message);
+                var id = TransactionService.Deposit(CurrentLoginInfo.User, account, currency, money, message);
                 return Ok(new {id = id});
             }
             catch (Exception ex) when (ex is ArgumentException || ex is BusinessException)

@@ -13,8 +13,6 @@ namespace LeeVox.Demo.BigBank.Data
         }
 
         public User ByEmail(string email)
-        {
-            return this.All.FirstOrDefault(x => email.IsOrdinalEqual(x.Email, true));
-        }
+            => All.FirstOrDefault(x => email.IsOrdinalEqual(x.Email, true));
     }
 }

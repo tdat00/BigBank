@@ -8,6 +8,12 @@ namespace LeeVox.Demo.BigBank.Model
 {
     public class TransferMoneyTransaction : Transaction
     {
-        public BankAccount FromAccount {get; set;}
+        public int SourceAccountId {get; set;}
+        public BankAccount SourceAccount {get; set;}
+
+        public int CurrencyId {get; set;}
+        public Currency Currency {get; set;}
+
+        public decimal Money {get; set;}
     }
 }

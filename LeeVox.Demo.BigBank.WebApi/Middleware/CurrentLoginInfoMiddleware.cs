@@ -21,13 +21,18 @@ namespace LeeVox.Demo.BigBank.WebApi.Middleware
                 var authInfo = httpContext.HttpContext.AuthenticateAsync().WaitAndReturn();
                 var claims = authInfo?.Principal?.Claims ?? new List<Claim>();
 
+                // foreach (var claim in claims)
+                // {
+                //     Console.WriteLine($"++++++++++ {claim.Type} = {claim.Value}");
+                // }
+
                 var session = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Jti)?.Value;
-                var userId = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value;
-                var first_name = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName)?.Value;
-                var last_name = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName)?.Value;
-                var email = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Email)?.Value;
+                var userId = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub || x.Type == ClaimTypes.NameIdentifier)?.Value;
+                var first_name = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName || x.Type == ClaimTypes.GivenName)?.Value;
+                var last_name = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName || x.Type == ClaimTypes.Surname)?.Value;
+                var email = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Email || x.Type == ClaimTypes.Email)?.Value;
                 
-                var roleClaims = claims.Where(x => x.Type == ClaimTypes.Role || "role".IsOrdinalEqual(x.Type, true)) ?? new List<Claim>();
+                var roleClaims = claims.Where(x => x.Type == ClaimTypes.Role) ?? new List<Claim>();
                 var roles = string.Join(",", roleClaims.Select(x => x.Value));
                 if (!Enum.TryParse(roles, out UserRole userRole))
                     userRole = UserRole.Customer;

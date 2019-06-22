@@ -16,15 +16,5 @@ namespace LeeVox.Demo.BigBank.Data
             : base(dbContext, logger)
         {
         }
-
-        public BankAccount ByName(string accountName)
-        {
-            return All.FirstOrDefault(x => accountName.IsOrdinalEqual(x.AccountNumber));
-        }
-
-        public IQueryable<BankAccount> ByUser(int userId)
-        {
-            return All.Where(x => x.UserId == userId);
-        }
     }
 }

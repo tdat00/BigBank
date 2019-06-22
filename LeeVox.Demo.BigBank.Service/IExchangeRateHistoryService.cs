@@ -6,6 +6,8 @@ namespace LeeVox.Demo.BigBank.Service
 {
     public interface IExchangeRateHistoryService : IService
     {
+        decimal GetExchangeRate(string fromCurrency, string toCurrency, DateTime time);
+
         int InsertExchangeRate(DateTime time, string fromCurrency, string toCurrency, decimal rate);
         void InsertExchangeRate(IEnumerable<(DateTime time, string fromCurrency, string toCurrency, decimal rate)> exchangeRates);
     }

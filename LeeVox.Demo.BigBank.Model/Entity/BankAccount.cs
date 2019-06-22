@@ -16,6 +16,7 @@ namespace LeeVox.Demo.BigBank.Model
         public virtual Currency Currency {get; set;}
         [IgnoreDataMember]
         public int UserId {get; set;}
+        [IgnoreDataMember]
         public virtual User User {get; set;}
 
         public decimal Balance {get; set;}

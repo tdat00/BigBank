@@ -11,10 +11,5 @@ namespace LeeVox.Demo.BigBank.Data
             : base(dbContext, logger)
         {
         }
-
-        public Currency ByName(string name)
-        {
-            return this.All.FirstOrDefault(x => name.IsOrdinalEqual(x.Name, true));
-        }
     }
 }

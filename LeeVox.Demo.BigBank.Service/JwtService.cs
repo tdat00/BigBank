@@ -18,7 +18,11 @@ namespace LeeVox.Demo.BigBank.Service
         public IJwtSessionService JwtSessionService {get; set;}
         private JwtConfig JwtConfig {get; set;}
 
-        public JwtService(IOptions<JwtConfig> jwtConfig, IJwtSessionService jwtSessionService, ILogger<IJwtService> logger)
+        public JwtService(
+            IOptions<JwtConfig> jwtConfig,
+            IJwtSessionService jwtSessionService,
+            ILogger<IJwtService> logger
+        )
         {
             this.JwtConfig = jwtConfig.Value;
             this.JwtSessionService = jwtSessionService;
@@ -27,7 +31,8 @@ namespace LeeVox.Demo.BigBank.Service
 
         public string GenerateToken(User user)
         {
-            var token = string.Empty;
+            user.EnsureNotNull(nameof(user));
+
             var random = new CryptoRandom();
             var session = random.RandomBytes(16).GetHexaString();
             var roles = user.Role.ToString().Split(',').Select(x => new Claim(ClaimTypes.Role, x.Trim()));
@@ -49,13 +54,15 @@ namespace LeeVox.Demo.BigBank.Service
                 expires: DateTime.Now.AddMinutes(JwtConfig.AccessExpiration),
                 signingCredentials: credentials
             );
-            token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+            var token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
             JwtSessionService.Add(session, jwtToken);
             return token;
         }
 
         public void RemoveSession(string session)
         {
+            session.EnsureNotNullOrWhiteSpace(nameof(session));
+
             JwtSessionService.Remove(session);
         }
     }

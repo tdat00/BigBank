@@ -33,11 +33,11 @@ namespace LeeVox.Demo.BigBank.Service
             var roles = user.Role.ToString().Split(',').Select(x => new Claim(ClaimTypes.Role, x.Trim()));
             var claim = new List<Claim>(roles)
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.FirstName),
-                new Claim(ClaimTypes.GivenName, user.LastName),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim("session", session)
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
+                new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, session)
             };
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtConfig.Secret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

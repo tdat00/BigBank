@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Collections.Generic;
 using System;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace LeeVox.Demo.BigBank.WebApi.Middleware
 {
@@ -20,11 +21,11 @@ namespace LeeVox.Demo.BigBank.WebApi.Middleware
                 var authInfo = httpContext.HttpContext.AuthenticateAsync().WaitAndReturn();
                 var claims = authInfo?.Principal?.Claims ?? new List<Claim>();
 
-                var session = claims.FirstOrDefault(x => "session".IsOrdinalEqual(x.Type, true))?.Value;
-                var userId = claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier || "id".IsOrdinalEqual(x.Type, true))?.Value;
-                var first_name = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name || "first_name".IsOrdinalEqual(x.Type, true))?.Value;
-                var last_name = claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName || "last_name".IsOrdinalEqual(x.Type, true))?.Value;
-                var email = claims.FirstOrDefault(x => x.Type == ClaimTypes.Email || "email".IsOrdinalEqual(x.Type, true))?.Value;
+                var session = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Jti)?.Value;
+                var userId = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value;
+                var first_name = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName)?.Value;
+                var last_name = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName)?.Value;
+                var email = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Email)?.Value;
                 
                 var roleClaims = claims.Where(x => x.Type == ClaimTypes.Role || "role".IsOrdinalEqual(x.Type, true)) ?? new List<Claim>();
                 var roles = string.Join(",", roleClaims.Select(x => x.Value));

@@ -243,19 +243,19 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Step("\r\nWithdraw EUR 9,000,000 from VND_Dat_999.");
+            Step("\r\nWithdraw VND 900,000,000 from VND_Dat_999.");
             response = POST(restClient, "api/bank-account/withdraw/VND_Dat_999", new {
-                currency = "EUR",
-                money = 9_000_000m
+                currency = "VND",
+                money = 900_000_000m
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
 
 
-            Step("\r\nWithdraw again, EUR 90 instead of EUR 9,000,000.");
+            Step("\r\nWithdraw again, VND 900,000 instead of EUR 9,000,000.");
             response = POST(restClient, "api/bank-account/withdraw/VND_Dat_999", new {
-                currency = "EUR",
-                money = 90m,
+                currency = "VND",
+                money = 900_000m,
                 message = "cash withdraw from ATM"
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}

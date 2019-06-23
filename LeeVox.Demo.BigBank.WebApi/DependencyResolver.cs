@@ -1,3 +1,4 @@
+using LeeVox.Demo.BigBank.Core;
 using LeeVox.Demo.BigBank.Data;
 using LeeVox.Demo.BigBank.Model;
 using LeeVox.Demo.BigBank.Service;
@@ -10,6 +11,10 @@ namespace LeeVox.Demo.BigBank.WebApi
     {
         public void AddDependencies(IServiceCollection services)
         {
+            // LeeVox.Demo.Bigbank.Core
+            services.AddTransient<ICryptoRandom, CryptoRandom>();
+            services.AddTransient<ICryptoHash, CryptoHash>();
+
             // LeeVox.Demo.Bigbank.WebApi.Controller
             services.AddScoped<IUserController, UserController>();
             services.AddScoped<IExchangeRateController, ExchangeRateController>();

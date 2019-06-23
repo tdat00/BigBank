@@ -34,7 +34,7 @@ namespace LeeVox.Demo.BigBank.Service
             user.EnsureNotNull(nameof(user));
 
             var random = new CryptoRandom();
-            var session = random.RandomBytes(16).GetHexaString();
+            var session = random.RandomBytes(16).GetBase64String();
             var roles = user.Role.ToString().Split(',').Select(x => new Claim(ClaimTypes.Role, x.Trim()));
             var claim = new List<Claim>(roles)
             {

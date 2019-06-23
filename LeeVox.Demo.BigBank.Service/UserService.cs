@@ -11,6 +11,7 @@ namespace LeeVox.Demo.BigBank.Service
 {
     public class UserService : IUserService
     {
+        public ICryptoHash CryptoHash {get; set;}
         public IJwtService JwtService {get; set;}
         public IBankAccountService BankAccountService {get; set;}
         public IUserRepository UserRepository {get; set;}
@@ -18,6 +19,8 @@ namespace LeeVox.Demo.BigBank.Service
         public ILogger<IUserService> Logger {get; set;}
 
         public UserService(
+            ICryptoHash cryptoHash,
+
             IJwtService jwtService,
             IBankAccountService bankAccountService,
 
@@ -26,6 +29,8 @@ namespace LeeVox.Demo.BigBank.Service
             IUnitOfWork unitOfWork,
             ILogger<IUserService> logger)
         {
+            this.CryptoHash = cryptoHash;
+
             this.JwtService = jwtService;
             this.BankAccountService = bankAccountService;
             
@@ -78,11 +83,7 @@ namespace LeeVox.Demo.BigBank.Service
             if (!Enum.TryParse(role, out UserRole userRole))
                 userRole = UserRole.Customer;
 
-            var random = new CryptoRandom();
-            var hasher = new CryptoHash();
-            var salt = random.RandomBytes(16).GetHexaString();
-            //TODO: use slow hash instead of SHA
-            var passwordHash = hasher.Sha256(salt + password).GetHexaString();
+            var (hash, salt) = CryptoHash.Pbkdf2Hash(password);
 
             var entity = new User
             {
@@ -91,8 +92,8 @@ namespace LeeVox.Demo.BigBank.Service
                 FirstName = firstName,
                 LastName = lastName,
                 
-                PasswordSalt = salt,
-                PasswordHash = passwordHash
+                PasswordSalt = salt.GetBase64String(),
+                PasswordHash = hash.GetBase64String()
             };
 
             UserRepository.Create(entity);
@@ -107,9 +108,7 @@ namespace LeeVox.Demo.BigBank.Service
             password = password.EnsureNotNullOrWhiteSpace(nameof(password));
 
             var user = Get(email);
-            var hasher = new CryptoHash();
-            //TODO: use slow hash instead of SHA
-            var passwordHash = hasher.Sha256(user.PasswordSalt + password).GetHexaString();
+            var passwordHash = CryptoHash.Pbkdf2Hash(password, user.PasswordSalt.ParseBase64String()).GetBase64String();
 
             if (passwordHash.IsOrdinalEqual(user.PasswordHash, true))
             {

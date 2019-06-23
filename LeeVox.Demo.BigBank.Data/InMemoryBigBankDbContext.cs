@@ -24,7 +24,6 @@ namespace LeeVox.Demo.BigBank.Data
         public InMemoryBigBankDbContext(ILogger<IBigBankDbContext> logger)
         {
             Database.EnsureCreated();
-
             this.Logger = logger;
         }
 
@@ -37,10 +36,8 @@ namespace LeeVox.Demo.BigBank.Data
         {
 #if DEBUG
             // create super admin account
-            var random = new CryptoRandom();
-            var hasher = new CryptoHash();
-            var passwordSalt = random.RandomBytes(16).GetHexaString();
-            var passwordHash = hasher.Sha256(passwordSalt + "T0p$ecret").GetHexaString();
+            var hasher = new CryptoHash(new CryptoRandom());
+            var (hash, salt) = hasher.Pbkdf2Hash("T0p$ecret");
             builder.Entity<User>().HasData(new User
             {
                 Id = 1000,
@@ -48,8 +45,8 @@ namespace LeeVox.Demo.BigBank.Data
                 LastName = "Admin",
                 Email = "admin@big.bank",
                 Role = UserRole.Admin | UserRole.BankOfficer,
-                PasswordSalt = passwordSalt,
-                PasswordHash = passwordHash
+                PasswordSalt = salt.GetBase64String(),
+                PasswordHash = hash.GetBase64String()
             });
 
             // create currencies

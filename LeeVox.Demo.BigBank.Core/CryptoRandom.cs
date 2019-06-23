@@ -1,8 +1,14 @@
+using System;
 using System.Security.Cryptography;
 
 namespace LeeVox.Demo.BigBank.Core
 {
-    public class CryptoRandom
+    public interface ICryptoRandom
+    {
+        byte[] RandomBytes(int length);
+    }
+
+    public class CryptoRandom : ICryptoRandom
     {
         public byte[] RandomBytes(int length)
         {

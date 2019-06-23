@@ -30,7 +30,7 @@ namespace LeeVox.Demo.BigBank.Service
         public Currency Get(int id)
         {
             var entity = CurrencyRepository.ById(id);
-            entity.EnsureNotNull("Currency");
+            entity.EnsureNotNull(message: $"Currency Id {id} does not exist.");
 
             return entity;
         }
@@ -40,7 +40,7 @@ namespace LeeVox.Demo.BigBank.Service
             name.EnsureNotNullOrWhiteSpace(nameof(name));
             
             var entity = CurrencyRepository.All.FirstOrDefault(x => name.IsOrdinalEqual(x.Name, true));
-            entity.EnsureNotNull("Currency");
+            entity.EnsureNotNull(message: $"Currency {name} does not exist.");
 
             return entity;
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Net;
@@ -137,11 +138,11 @@ namespace LeeVox.Demo.BigBank.TestApp
             });
 
 
-            Step("\r\nDeposit EUR 987.65 to EUR_Jobs_001");
+            Step("\r\nDeposit SGD 987.65 to EUR_Jobs_001");
             response = POST(restClient, "api/bank-account/deposit/EUR_Jobs_001", new {
-                currency = "EUR",
+                currency = "SGD",
                 amount = 987.65m,
-                message = "Deposit EUR 987.65"
+                message = "Deposit SGD 987.65"
             }, new Dictionary<string, string>() {
                 {"Authorization", $"Bearer {token}"}
             });
@@ -308,10 +309,14 @@ namespace LeeVox.Demo.BigBank.TestApp
             {
                 request.AddJsonBody(body);
             }
+            var watch = Stopwatch.StartNew();
             var response = client.Execute(request);
+            watch.Stop();
+
             var success = response.StatusCode == HttpStatusCode.OK;
             Console.Write("Result: ");
             ColorfulConsole.WriteLine($"{(int)response.StatusCode} {response.StatusCode}", success ? Color.Green : Color.Red);
+            Console.WriteLine($"Elapsed Time: {watch.ElapsedMilliseconds/1000d} sec");
             Console.WriteLine($"Content:\r\n{response.Content}");
             return response;
         }
